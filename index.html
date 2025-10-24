@@ -838,11 +838,30 @@
                 <p><strong>Single Cohort Retention:</strong> Shows how one group of customers decays over time. The stacked areas show the contribution of each segment (short-term, medium-term, long-term). Light blue dots (if present) show your actual data vs. the fitted model (blue line).</p>
                 <p><strong>Multi-Cohort Growth:</strong> Shows your total customer base when adding new cohorts monthly. The stacked areas reveal how much each segment contributes to total growth. The dashed line shows the theoretical ceiling (asymptote).</p>
 
+                <h3>🎯 Understanding Your Growth Ceiling (Asymptote)</h3>
+                <p><strong>This is one of the most powerful, non-obvious insights your simulation reveals.</strong> It predicts the maximum number of customers your business will reach if your current acquisition and churn rates remain constant.</p>
+
+                <h4>The "Leaky Bucket" Analogy</h4>
+                <p>Imagine your customer base is a bucket of water:</p>
+                <ul>
+                    <li><strong>Acquisition:</strong> A tap pouring a fixed amount of water into the bucket each month (e.g., 1,000 users/month).</li>
+                    <li><strong>Customers:</strong> The current water level in the bucket.</li>
+                    <li><strong>Churn Rate:</strong> The size of the holes in the bucket (e.g., a 5% monthly churn). This percentage stays constant.</li>
+                    <li><strong>Absolute Churn:</strong> The amount of water actually leaking out.</li>
+                </ul>
+
+                <p>When you first start, the tap fills the bucket much faster than it leaks. However, the more water in the bucket (your <strong>total customer base</strong>), the more water is leaking out at any given moment—even if the size of the holes (your <strong>churn percentage</strong>) stays the same.</p>
+
+                <blockquote style="margin-top: 1rem; margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--bg-main); border-left: 4px solid var(--primary); border-radius: 4px;">
+                    <p><strong>The critical distinction:</strong> A 5% churn rate on 1,000 customers means losing 50. But on 100,000 customers, it means losing 5,000. The <strong>absolute loss</strong> grows as your base grows.</p>
+                </blockquote>
+
+                <p>Eventually, you reach a point where the water leaking out perfectly equals the water pouring in. At this moment, the water level stops rising. It has hit its <em>ceiling</em>.</p>
+
                 <h3>📊 Key Metrics Explained</h3>
                 <ul>
                     <li><strong>Cohort Half-Life (Median):</strong> Time when 50% of customers have churned</li>
                     <li><strong>Mean Lifetime:</strong> Average customer lifespan (weighted by segment size)</li>
-                    <li><strong>Growth Asymptote:</strong> Steady-state customer base where new acquisition = total churn</li>
                     <li><strong>Avg Error (MAPE):</strong> Average error between model and data (&lt;5% = excellent, 5-10% = good, &gt;10% = review fit visually)</li>
                     <li><strong>R²:</strong> Variance explained (can be misleading for visual fit - use Avg Error instead)</li>
                 </ul>
@@ -1120,7 +1139,7 @@
                     </div>
                     <div class="kpi-grid">
                         <div class="kpi-item" style="border-right: none;">
-                            <div class="kpi-label" data-tooltip="Steady-state customer base where new acquisitions equal total churn">Theoretical Ceiling (Asymptote)</div>
+                            <div class="kpi-label" data-tooltip="The maximum number of customers you will reach if acquisition and churn rates stay the same. To raise this ceiling, you must either increase acquisition or decrease churn.">Growth Ceiling (Asymptote)</div>
                             <div class="kpi-value highlight" id="asymptoteDisplay">--</div>
                             <div style="font-size: 0.8rem; color: var(--text-body); margin-top: 4px;" id="asymptoteFormula"></div>
                         </div>
@@ -2181,9 +2200,9 @@
                 // All segments have churn - finite asymptote
                 asymptoteVal = (T / shortTermChurn) + (M / mediumTermChurn) + (L / longTermChurn);
                 asymptoteStr = Math.round(asymptoteVal).toLocaleString();
-                document.getElementById('asymptoteFormula').innerText = 'Steady state where churn equals new acquisition';
+                document.getElementById('asymptoteFormula').innerText = 'Your growth will level off here without improving retention or acquisition';
             } else {
-                document.getElementById('asymptoteFormula').innerText = 'At least one segment has 0% churn';
+                document.getElementById('asymptoteFormula').innerText = 'No ceiling - at least one segment has 0% churn (infinite retention)';
                 
                 // Calculate linear asymptote - sum up the segments
                 linearAsymptoteData = timePoints.map(t => {
