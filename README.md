@@ -24,8 +24,11 @@ Divide your customer base into segments based on longevity:
 ### Interactive Visualizations
 - **Single Cohort Retention**: See how one cohort decays over time with segment breakdown
 - **Multi-Cohort Growth**: Model total customer base with monthly acquisition
+- **Stacked Area Charts**: Visual breakdown showing each segment's contribution to retention and growth
 - **Actual Data Overlay**: When curve fitting, your real data appears as light blue dots
-- Real-time chart updates as you adjust parameters
+- **Live auto-updates**: Charts refresh automatically as you adjust parameters (300ms debounce)
+- **Interactive range sliders**: Fluid parameter adjustments with visual feedback
+- **Segment sum indicator**: Visual progress bar ensuring segments total 100%
 
 ### Curve Fitting with Visual Validation
 - Paste your actual retention data (percentages by month)
@@ -53,6 +56,7 @@ Quick-start with realistic example scenarios:
 - **Download charts as PNG**: High-quality images for presentations
 - **Export to CSV**: Full simulation data for Excel/Sheets analysis
 - **Shareable links**: Copy URL with parameters to share with colleagues
+- **Auto-save via URL**: Parameters automatically saved in URL - refresh-proof!
 - All exports reflect current simulation state
 
 ### Key Metrics
@@ -79,8 +83,11 @@ Simply open `index.html` in your web browser. No installation or build process r
 1. **Set Monthly Acquisition**: How many new customers you acquire each month
 2. **Define Retention Segments**: 
    - Set the percentage split (must sum to 100%)
+   - Watch the segment sum indicator (green = valid, orange/red = invalid)
+   - Use range sliders for quick adjustments
    - Set monthly churn rate for each segment
-3. **Run Simulation**: Click "Run Simulation" to see results
+3. **Live Updates**: Charts update automatically as you adjust parameters - no button needed!
+4. **Auto-Save**: Your parameters are saved in the URL - refresh won't lose your work!
 
 ### Advanced: Fit to Real Data
 
