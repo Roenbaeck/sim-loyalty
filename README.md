@@ -20,15 +20,39 @@ Divide your customer base into segments based on longevity:
 - **Long-term**: Low churn, highly engaged customers
 
 ### Interactive Visualizations
-- **Single Cohort Retention**: See how one cohort decays over time
+- **Single Cohort Retention**: See how one cohort decays over time with segment breakdown
 - **Multi-Cohort Growth**: Model total customer base with monthly acquisition
+- **Actual Data Overlay**: When curve fitting, your real data appears as light blue dots
 - Real-time chart updates as you adjust parameters
 
-### Curve Fitting
-Upload your actual retention data and automatically fit the three-segment model to match your observed patterns. Perfect for working with real cohort data from your analytics platform.
+### Curve Fitting with Visual Validation
+- Paste your actual retention data (percentages by month)
+- Automatically fit the three-segment model to your data
+- **See your actual data as light blue dots** overlaid on the model prediction
+- Visually validate fit quality at a glance
+- Perfect for working with real cohort data from your analytics platform
+
+### Built-in Presets
+Quick-start with realistic example scenarios:
+- **SaaS Startup**: High early churn, rapid growth potential
+- **E-commerce**: Moderate retention patterns
+- **Mobile App**: Very high initial churn, small loyal base
+- **Enterprise B2B**: Low churn, long-term relationships
+
+### Save & Load Parameter Sets
+- Save unlimited named parameter sets (e.g., "Q4 Projections", "Best Case")
+- Saved sets include fitted data from curve fitting
+- Quick switching between scenarios
+- Persists in browser storage
+
+### Export & Share
+- **Download charts as PNG**: High-quality images for presentations
+- **Export to CSV**: Full simulation data for Excel/Sheets analysis
+- **Shareable links**: Copy URL with parameters to share with colleagues
+- All exports reflect current simulation state
 
 ### Key Metrics
-- **Median Customer Lifetime**: When 50% of customers have churned
+- **Cohort Half-Life (Median)**: When 50% of customers have churned
 - **Mean Customer Lifetime**: Average customer lifespan
 - **Growth Asymptote**: Steady-state customer base (if churn > 0)
 
@@ -40,20 +64,34 @@ Visit the hosted version at: **https://roenbaeck.github.io/sim-loyalty/**
 ### Local Usage
 Simply open `index.html` in your web browser. No installation or build process required!
 
-### Basic Usage
+### Quick Start with Presets
+
+1. Select a preset from **Presets & Saved Sets** dropdown
+2. Choose: SaaS Startup, E-commerce, Mobile App, or Enterprise B2B
+3. Charts update automatically - explore and modify as needed
+
+### Manual Setup
 
 1. **Set Monthly Acquisition**: How many new customers you acquire each month
 2. **Define Retention Segments**: 
    - Set the percentage split (must sum to 100%)
    - Set monthly churn rate for each segment
-3. **Run Simulation**: Adjust duration and click "Update Charts"
+3. **Run Simulation**: Click "Run Simulation" to see results
 
 ### Advanced: Fit to Real Data
 
 1. Click "🎯 Fit Model to Data" 
 2. Paste your retention percentages (one per month, starting at 100%)
-3. Click "Run Fit" to automatically calculate optimal segment parameters
-4. Review the fitted values and adjust manually if needed
+3. Click "Fit Parameters" to automatically calculate optimal segment parameters
+4. Your actual data appears as **light blue dots** on the retention chart
+5. Compare the fitted model (blue line) with your actual data visually
+
+### Save Your Work
+
+1. Configure your parameters (manually or via curve fitting)
+2. Enter a name in "Save Current Parameters As"
+3. Click 💾 Save
+4. Load anytime from the dropdown - your fitted data is preserved!
 
 ## Use Cases
 
@@ -78,11 +116,13 @@ Simply open `index.html` in your web browser. No installation or build process r
 
 ## Tips
 
-- **Start with default values** to understand model behavior
-- **Use real data**: The curve fitting feature works best with 6-12+ months of data
-- **Validate assumptions**: Compare model output with your actual metrics
-- **Iterate**: Adjust segment percentages to better match observed patterns
-- **Experiment**: Test "what-if" scenarios by varying acquisition or churn rates
+- **Start with presets** to quickly understand the model and see realistic parameters
+- **Save multiple scenarios** to compare strategies ("Optimistic", "Conservative", "Current")
+- **Use real data**: The curve fitting works best with 6-12+ months of cohort data
+- **Visual validation**: Light blue dots show how well your model fits actual data
+- **Export for presentations**: Download charts as PNG for stakeholder meetings
+- **Share with colleagues**: Use shareable links to discuss assumptions as a team
+- **Experiment freely**: Test "what-if" scenarios - your saved sets are always available
 
 ## License
 
