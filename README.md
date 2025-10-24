@@ -34,7 +34,11 @@ Upload your actual retention data and automatically fit the three-segment model 
 
 ## Getting Started
 
-Simply open `sim-loyalty.html` in your web browser. No installation or build process required!
+### Live Demo
+Visit the hosted version at: **https://roenbaeck.github.io/sim-loyalty/**
+
+### Local Usage
+Simply open `index.html` in your web browser. No installation or build process required!
 
 ### Basic Usage
 
@@ -83,6 +87,17 @@ Simply open `sim-loyalty.html` in your web browser. No installation or build pro
 ## License
 
 See [LICENSE](LICENSE) file for details.
+
+## Deployment
+
+This project uses GitHub Pages for hosting:
+
+1. Go to **Settings** → **Pages** in your GitHub repository
+2. Under "Source", select **main** branch
+3. Save and wait a few minutes for deployment
+4. Access at `https://roenbaeck.github.io/sim-loyalty/`
+
+Changes pushed to the main branch are automatically deployed.
 
 ## Contributing
 
