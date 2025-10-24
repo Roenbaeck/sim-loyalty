@@ -438,6 +438,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             border-bottom: 1px solid var(--border-color);
+            min-height: 15ex;
         }
 
         .kpi-item {
@@ -1576,15 +1577,11 @@
                 plugins: {
                     legend: {
                         display: true,
-                        position: 'top',
-                        align: 'end',
+                        position: 'bottom',
+                        align: 'center',
                         labels: { 
                             boxWidth: 12, 
-                            usePointStyle: true,
-                            filter: function(item) {
-                                // Only show legend if we have actual data points
-                                return item.text !== 'Model Prediction' || actualRetentionData;
-                            }
+                            usePointStyle: true
                         }
                     },
                     tooltip: {
@@ -1609,6 +1606,7 @@
                     },
                     y: {
                         beginAtZero: true,
+                        stacked: true,
                         title: { display: true, text: 'Users Remaining', font: { weight: 500 } }
                     }
                 }
@@ -1627,9 +1625,12 @@
                 },
                 plugins: {
                     legend: {
-                        position: 'top',
-                        align: 'end',
-                        labels: { boxWidth: 12, usePointStyle: true }
+                        position: 'bottom',
+                        align: 'center',
+                        labels: { 
+                            boxWidth: 12, 
+                            usePointStyle: true
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -1694,6 +1695,17 @@
                 let transRem = (mediumTermChurn === 1) ? (t === 0 ? M : 0) : M * Math.pow(1 - mediumTermChurn, t);
                 let longTermRem = (longTermChurn === 1) ? (t === 0 ? L : 0) : L * Math.pow(1 - longTermChurn, t);
                 return shortTermRem + transRem + longTermRem;
+            });
+
+            // Calculate individual segment data for stacked area chart
+            const shortTermData = timePoints.map(t => {
+                return (shortTermChurn === 1) ? (t === 0 ? T : 0) : T * Math.pow(1 - shortTermChurn, t);
+            });
+            const mediumTermData = timePoints.map(t => {
+                return (mediumTermChurn === 1) ? (t === 0 ? M : 0) : M * Math.pow(1 - mediumTermChurn, t);
+            });
+            const longTermData = timePoints.map(t => {
+                return (longTermChurn === 1) ? (t === 0 ? L : 0) : L * Math.pow(1 - longTermChurn, t);
             });
 
             // --- KPI CALCS: MEDIAN & MEAN ---
@@ -1799,21 +1811,59 @@
 
             // --- UPDATE CHARTS ---
             
-            // 1. Retention Update
-            const accentColor = '#2563eb';
-            const retentionDatasets = [{
-                label: 'Model Prediction',
-                data: retentionData,
-                borderColor: accentColor,
-                backgroundColor: accentColor,
-                borderWidth: 2.5,
-                pointRadius: 0,
-                pointHoverRadius: 6,
-                fill: {
-                    target: 'origin',
-                    above: 'rgba(37, 99, 235, 0.05)' // Very subtle fill
+            // 1. Retention Update - Stacked areas for each segment
+            const retentionDatasets = [
+                {
+                    label: 'Long-term Segment',
+                    data: longTermData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    stack: 'segments',
+                    order: 4
+                },
+                {
+                    label: 'Medium-term Segment',
+                    data: mediumTermData,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    stack: 'segments',
+                    order: 3
+                },
+                {
+                    label: 'Short-term Segment',
+                    data: shortTermData,
+                    borderColor: '#ec4899',
+                    backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    stack: 'segments',
+                    order: 2
+                },
+                {
+                    label: 'Total Retention',
+                    data: retentionData,
+                    borderColor: '#1e293b',
+                    backgroundColor: 'transparent',
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    fill: false,
+                    order: 1,
+                    tension: 0.1,
+                    stack: 'total-line',  // Separate stack to prevent contribution to stacked areas
+                    yAxisID: 'y'
                 }
-            }];
+            ];
             
             // Add actual data points if they exist (from curve fitting)
             if (actualRetentionData && actualRetentionData.length > 0) {
@@ -1824,12 +1874,13 @@
                     label: 'Actual Data',
                     data: actualPoints,
                     type: 'scatter',
-                    borderColor: '#60a5fa',
-                    backgroundColor: '#60a5fa',
+                    borderColor: '#1e40af',
+                    backgroundColor: '#3b82f6',
                     pointRadius: 5,
                     pointHoverRadius: 7,
                     borderWidth: 2,
-                    showLine: false
+                    showLine: false,
+                    order: 0
                 });
             }
             
