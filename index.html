@@ -718,7 +718,7 @@
                             class="fit-textarea" 
                             placeholder="Enter retention percentages, one per line or comma-separated:&#10;100&#10;82&#10;73&#10;65&#10;58&#10;52&#10;..."></textarea>
                         <div class="fit-help">
-                            Paste your cohort retention data starting at 100%. Each value represents the percentage of customers remaining after each period.
+                            Paste your cohort retention data starting at 100%. Each value represents the percentage of customers remaining after each period. Your actual data will appear as light blue points on the retention chart.
                         </div>
                         <button class="fit-btn" onclick="fitModelToData()">Fit Parameters</button>
                         <div class="fit-result" id="fitResult"></div>
@@ -773,6 +773,9 @@
     </div>
 
     <script>
+        // --- Global State ---
+        let actualRetentionData = null; // Store actual data points from curve fitting
+
         // --- Chart Global Configuration for a more professional look ---
         Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
         Chart.defaults.color = '#64748b';
@@ -869,6 +872,9 @@
             try {
                 // Parse data
                 const data = parseRetentionData(input);
+                
+                // Store actual data for visualization
+                actualRetentionData = data;
                 
                 // Show processing
                 resultDiv.className = 'fit-result visible';
@@ -1078,7 +1084,17 @@
                 },
                 plugins: {
                     legend: {
-                        display: false // We'll rely on clear titles and single main lines usually
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: { 
+                            boxWidth: 12, 
+                            usePointStyle: true,
+                            filter: function(item) {
+                                // Only show legend if we have actual data points
+                                return item.text !== 'Model Prediction' || actualRetentionData;
+                            }
+                        }
                     },
                     tooltip: {
                         callbacks: {
@@ -1287,21 +1303,41 @@
             
             // 1. Retention Update
             const accentColor = '#2563eb';
+            const retentionDatasets = [{
+                label: 'Model Prediction',
+                data: retentionData,
+                borderColor: accentColor,
+                backgroundColor: accentColor,
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                fill: {
+                    target: 'origin',
+                    above: 'rgba(37, 99, 235, 0.05)' // Very subtle fill
+                }
+            }];
+            
+            // Add actual data points if they exist (from curve fitting)
+            if (actualRetentionData && actualRetentionData.length > 0) {
+                // Convert actual data to absolute numbers (multiply by cohort size)
+                const actualPoints = actualRetentionData.map(pct => pct * cohortSize);
+                
+                retentionDatasets.push({
+                    label: 'Actual Data',
+                    data: actualPoints,
+                    type: 'scatter',
+                    borderColor: '#60a5fa',
+                    backgroundColor: '#60a5fa',
+                    pointRadius: 5,
+                    pointHoverRadius: 7,
+                    borderWidth: 2,
+                    showLine: false
+                });
+            }
+            
             retentionChart.data = {
                 labels: timePoints,
-                datasets: [{
-                    label: 'Active Users',
-                    data: retentionData,
-                    borderColor: accentColor,
-                    backgroundColor: accentColor,
-                    borderWidth: 2.5,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    fill: {
-                        target: 'origin',
-                        above: 'rgba(37, 99, 235, 0.05)' // Very subtle fill
-                    }
-                }]
+                datasets: retentionDatasets
             };
 
             // Retention Annotations (Median and Mean lines)
