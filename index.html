@@ -638,7 +638,7 @@
                 <ul>
                     <li><strong>Short-term</strong>: High churn rate (~90%/month). These are exploratory users who try your product but don't stick around.</li>
                     <li><strong>Medium-term</strong>: Moderate churn rate (~10%/month). Regular users who engage but may eventually leave.</li>
-                    <li><strong>Long-term</strong>: Low churn rate (~1%/month). Your most engaged, longTerm customers.</li>
+                    <li><strong>Long-term</strong>: Low churn rate (~1%/month). Your most engaged, loyal customers.</li>
                 </ul>
                 <p>Each segment follows <strong>exponential decay</strong>: <code>remaining(t) = initial × (1 - churn)^t</code></p>
 
@@ -768,7 +768,7 @@
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="longTermChurnRate" data-tooltip="Monthly churn rate for long-term longTerm customers (typically 0.5-3%)">Long-term Churn Rate</label>
+                    <label for="longTermChurnRate" data-tooltip="Monthly churn rate for long-term loyal customers (typically 0.5-3%)">Long-term Churn Rate</label>
                     <div class="input-field-container">
                         <input type="number" id="longTermChurnRate" value="1" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
@@ -1024,9 +1024,9 @@
                         resultDiv.className = 'fit-result visible';
                         resultDiv.innerHTML = `
                             <strong>✅ Model fitted successfully!</strong><br>
-                            shortTerm Segment: ${(result.shortTermPercent * 100).toFixed(1)}% (${(result.shortTermChurn * 100).toFixed(1)}% churn)<br>
-                            mediumTerm Segment: ${(result.mediumTermPercent * 100).toFixed(1)}% (${(result.mediumTermChurn * 100).toFixed(1)}% churn)<br>
-                            longTerm Segment: ${(result.longTermPercent * 100).toFixed(1)}% (${(result.longTermChurn * 100).toFixed(1)}% churn)<br>
+                            Short-Term Segment: ${(result.shortTermPercent * 100).toFixed(1)}% (${(result.shortTermChurn * 100).toFixed(1)}% churn)<br>
+                            Medium-Term Segment: ${(result.mediumTermPercent * 100).toFixed(1)}% (${(result.mediumTermChurn * 100).toFixed(1)}% churn)<br>
+                            Long-Term Segment: ${(result.longTermPercent * 100).toFixed(1)}% (${(result.longTermChurn * 100).toFixed(1)}% churn)<br>
                             R² = ${result.rSquared.toFixed(4)} (fit quality)
                         `;
                         
