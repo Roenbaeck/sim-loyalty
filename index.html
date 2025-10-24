@@ -338,6 +338,50 @@
             background-color: var(--primary-hover);
         }
 
+        .export-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .export-btn {
+            padding: 0.5rem 0.75rem;
+            background-color: var(--bg-main);
+            color: var(--text-heading);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .export-btn:hover {
+            background-color: #e2e8f0;
+            border-color: var(--primary);
+        }
+
+        .preset-select {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.925rem;
+            color: var(--text-heading);
+            background: var(--bg-main);
+            cursor: pointer;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .preset-select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: #fff;
+        }
+
         /* Main Visualization Area */
         .visualization-area {
             flex: 1;
@@ -583,13 +627,14 @@
                 <p>Each segment follows <strong>exponential decay</strong>: <code>remaining(t) = initial × (1 - churn)^t</code></p>
 
                 <h3>🚀 Getting Started</h3>
-                <p><strong>Step 1:</strong> Set your <strong>Monthly Customer Acquisition</strong> (how many new customers per month)</p>
-                <p><strong>Step 2:</strong> Define your <strong>Retention Segments</strong>:</p>
+                <p><strong>Quick Start:</strong> Select a preset from <strong>Presets & Saved Sets</strong> dropdown (SaaS, E-commerce, Mobile App, or Enterprise B2B) to see example parameters.</p>
+                <p><strong>Manual Setup:</strong></p>
                 <ul>
-                    <li>Set segment sizes (must sum to 100%)</li>
-                    <li>Set monthly churn rate for each segment</li>
+                    <li><strong>Step 1:</strong> Set your <strong>Monthly Customer Acquisition</strong></li>
+                    <li><strong>Step 2:</strong> Define your <strong>Retention Segments</strong> (must sum to 100%)</li>
+                    <li><strong>Step 3:</strong> Click <strong>Run Simulation</strong> to see results</li>
                 </ul>
-                <p><strong>Step 3:</strong> Click <strong>Update Charts</strong> to see results</p>
+                <p><strong>💡 Tip:</strong> Save your parameters with a custom name to quickly switch between scenarios!</p>
 
                 <h3>🎯 Using Real Data (Advanced)</h3>
                 <p>If you have actual retention data from your analytics:</p>
@@ -727,6 +772,58 @@
             </div>
 
             <button class="update-btn" onclick="updateCharts()">Run Simulation</button>
+
+            <!-- Presets & Saved Sets Section -->
+            <div class="control-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <h3 class="panel-title">Presets & Saved Sets</h3>
+                
+                <div class="input-wrapper">
+                    <label for="presetSelect">Load Example or Saved Set</label>
+                    <select id="presetSelect" onchange="loadPreset()" class="preset-select">
+                        <option value="">-- Select --</option>
+                        <optgroup label="Example Presets">
+                            <option value="saas">SaaS Startup</option>
+                            <option value="ecommerce">E-commerce</option>
+                            <option value="mobile">Mobile App</option>
+                            <option value="enterprise">Enterprise B2B</option>
+                        </optgroup>
+                        <optgroup label="Your Saved Sets" id="savedSetsGroup">
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="saveSetName">Save Current Parameters As</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="text" id="saveSetName" placeholder="My Scenario" class="input-field-container" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+                        <button class="export-btn" onclick="saveNamedSet()" style="width: auto; padding: 0.5rem 1rem;">💾</button>
+                    </div>
+                </div>
+
+                <button class="export-btn" onclick="manageSavedSets()" style="width: 100%; margin-top: 0.5rem;">
+                    🗑️ Manage Saved Sets
+                </button>
+            </div>
+
+            <!-- Export Section -->
+            <div class="control-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                <h3 class="panel-title">Export & Share</h3>
+                
+                <div class="export-buttons">
+                    <button class="export-btn" onclick="downloadRetentionChart()" title="Download retention chart as PNG">
+                        Retention PNG
+                    </button>
+                    <button class="export-btn" onclick="downloadGrowthChart()" title="Download growth chart as PNG">
+                        Growth PNG
+                    </button>
+                    <button class="export-btn" onclick="exportToCSV()" title="Export simulation data to CSV">
+                        Export CSV
+                    </button>
+                    <button class="export-btn" onclick="copyShareableLink()" title="Copy shareable link with current parameters">
+                        Copy Link
+                    </button>
+                </div>
+            </div>
         </aside>
 
         <!-- Main Visualization Area -->
@@ -1444,7 +1541,273 @@
             }
         });
 
+        // --- Presets ---
+        const PRESETS = {
+            saas: {
+                name: "SaaS Startup",
+                cohortSize: "1000",
+                timePeriods: "36",
+                testerPercent: "30.0",
+                testerChurnRate: "85.0",
+                transientPercent: "50.0",
+                transientChurnRate: "12.0",
+                loyalPercent: "20.0",
+                loyalChurnRate: "2.0"
+            },
+            ecommerce: {
+                name: "E-commerce",
+                cohortSize: "2000",
+                timePeriods: "24",
+                testerPercent: "40.0",
+                testerChurnRate: "70.0",
+                transientPercent: "45.0",
+                transientChurnRate: "15.0",
+                loyalPercent: "15.0",
+                loyalChurnRate: "5.0"
+            },
+            mobile: {
+                name: "Mobile App",
+                cohortSize: "5000",
+                timePeriods: "12",
+                testerPercent: "75.0",
+                testerChurnRate: "95.0",
+                transientPercent: "20.0",
+                transientChurnRate: "25.0",
+                loyalPercent: "5.0",
+                loyalChurnRate: "8.0"
+            },
+            enterprise: {
+                name: "Enterprise B2B",
+                cohortSize: "50",
+                timePeriods: "60",
+                testerPercent: "10.0",
+                testerChurnRate: "50.0",
+                transientPercent: "40.0",
+                transientChurnRate: "5.0",
+                loyalPercent: "50.0",
+                loyalChurnRate: "1.0"
+            }
+        };
+
+        // --- Export & Share Functions ---
+        
+        function downloadRetentionChart() {
+            const canvas = document.getElementById('retentionChart');
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'retention-chart.png';
+            link.href = url;
+            link.click();
+        }
+
+        function downloadGrowthChart() {
+            const canvas = document.getElementById('growthChart');
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'growth-chart.png';
+            link.href = url;
+            link.click();
+        }
+
+        function getAllParameters() {
+            return {
+                cohortSize: document.getElementById('cohortSize').value,
+                timePeriods: document.getElementById('timePeriods').value,
+                testerPercent: document.getElementById('testerPercent').value,
+                testerChurnRate: document.getElementById('testerChurnRate').value,
+                transientPercent: document.getElementById('transientPercent').value,
+                transientChurnRate: document.getElementById('transientChurnRate').value,
+                loyalPercent: document.getElementById('loyalPercent').value,
+                loyalChurnRate: document.getElementById('loyalChurnRate').value,
+                actualData: actualRetentionData // Include fitted data if exists
+            };
+        }
+
+        function setAllParameters(params) {
+            document.getElementById('cohortSize').value = params.cohortSize;
+            document.getElementById('timePeriods').value = params.timePeriods;
+            document.getElementById('testerPercent').value = params.testerPercent;
+            document.getElementById('testerChurnRate').value = params.testerChurnRate;
+            document.getElementById('transientPercent').value = params.transientPercent;
+            document.getElementById('transientChurnRate').value = params.transientChurnRate;
+            document.getElementById('loyalPercent').value = params.loyalPercent;
+            document.getElementById('loyalChurnRate').value = params.loyalChurnRate;
+            
+            // Restore actual retention data if it was saved
+            if (params.actualData) {
+                actualRetentionData = params.actualData;
+            }
+        }
+
+        function copyShareableLink() {
+            const params = getAllParameters();
+            delete params.actualData; // Don't include in URL (too long)
+            const urlParams = new URLSearchParams(params);
+            const shareUrl = window.location.origin + window.location.pathname + '?' + urlParams.toString();
+            
+            navigator.clipboard.writeText(shareUrl).then(() => {
+                alert('✅ Link copied to clipboard! Share this URL to let others view your simulation.');
+            }).catch(() => {
+                // Fallback for older browsers
+                prompt('Copy this link:', shareUrl);
+            });
+        }
+
+        function loadPreset() {
+            const select = document.getElementById('presetSelect');
+            const value = select.value;
+            
+            if (!value) return;
+            
+            // Check if it's a built-in preset
+            if (PRESETS[value]) {
+                setAllParameters(PRESETS[value]);
+                updateCharts();
+                select.value = ""; // Reset selection
+                return;
+            }
+            
+            // Otherwise it's a saved set
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            if (savedSets[value]) {
+                setAllParameters(savedSets[value].params);
+                updateCharts();
+                select.value = ""; // Reset selection
+            }
+        }
+
+        function saveNamedSet() {
+            const name = document.getElementById('saveSetName').value.trim();
+            if (!name) {
+                alert('⚠️ Please enter a name for this parameter set.');
+                return;
+            }
+            
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            savedSets[name] = {
+                params: getAllParameters(),
+                timestamp: new Date().toISOString()
+            };
+            
+            localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
+            document.getElementById('saveSetName').value = '';
+            updateSavedSetsList();
+            alert(`✅ "${name}" saved successfully!`);
+        }
+
+        function updateSavedSetsList() {
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            const group = document.getElementById('savedSetsGroup');
+            group.innerHTML = '';
+            
+            const names = Object.keys(savedSets).sort();
+            if (names.length === 0) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = '(no saved sets)';
+                option.disabled = true;
+                group.appendChild(option);
+            } else {
+                names.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    group.appendChild(option);
+                });
+            }
+        }
+
+        function manageSavedSets() {
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            const names = Object.keys(savedSets);
+            
+            if (names.length === 0) {
+                alert('ℹ️ No saved sets to manage.');
+                return;
+            }
+            
+            const list = names.map((name, i) => `${i + 1}. ${name}`).join('\n');
+            const toDelete = prompt(`Your saved sets:\n${list}\n\nEnter the name of a set to DELETE (or cancel):`);
+            
+            if (toDelete && savedSets[toDelete]) {
+                if (confirm(`Delete "${toDelete}"?`)) {
+                    delete savedSets[toDelete];
+                    localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
+                    updateSavedSetsList();
+                    alert(`✅ "${toDelete}" deleted.`);
+                }
+            } else if (toDelete) {
+                alert('⚠️ Set not found.');
+            }
+        }
+
+        function exportToCSV() {
+            // Get current parameters
+            const cohortSize = parseFloat(document.getElementById('cohortSize').value);
+            const timePeriods = parseInt(document.getElementById('timePeriods').value);
+            const testerPercent = parseFloat(document.getElementById('testerPercent').value) / 100;
+            const testerChurn = parseFloat(document.getElementById('testerChurnRate').value) / 100;
+            const transientPercent = parseFloat(document.getElementById('transientPercent').value) / 100;
+            const transientChurn = parseFloat(document.getElementById('transientChurnRate').value) / 100;
+            const loyalPercent = parseFloat(document.getElementById('loyalPercent').value) / 100;
+            const loyalChurn = parseFloat(document.getElementById('loyalChurnRate').value) / 100;
+
+            const T = cohortSize * testerPercent;
+            const M = cohortSize * transientPercent;
+            const L = cohortSize * loyalPercent;
+
+            // Build CSV
+            let csv = 'Month,Short-term Users,Medium-term Users,Long-term Users,Total Retention,Total Customer Base\n';
+            
+            for (let t = 0; t <= timePeriods; t++) {
+                const testerRem = T * Math.pow(1 - testerChurn, t);
+                const transRem = M * Math.pow(1 - transientChurn, t);
+                const loyalRem = L * Math.pow(1 - loyalChurn, t);
+                const totalRetention = testerRem + transRem + loyalRem;
+                
+                // Calculate total customer base (all cohorts)
+                let totalBase = 0;
+                for (let k = 0; k <= t; k++) {
+                    const age = t - k;
+                    totalBase += (T * Math.pow(1 - testerChurn, age)) + 
+                                 (M * Math.pow(1 - transientChurn, age)) + 
+                                 (L * Math.pow(1 - loyalChurn, age));
+                }
+                
+                csv += `${t},${Math.round(testerRem)},${Math.round(transRem)},${Math.round(loyalRem)},${Math.round(totalRetention)},${Math.round(totalBase)}\n`;
+            }
+
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'sim-loyalty-data.csv';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Load parameters from URL on page load
+        function loadFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('cohortSize')) {
+                const params = {
+                    cohortSize: urlParams.get('cohortSize'),
+                    timePeriods: urlParams.get('timePeriods'),
+                    testerPercent: urlParams.get('testerPercent'),
+                    testerChurnRate: urlParams.get('testerChurnRate'),
+                    transientPercent: urlParams.get('transientPercent'),
+                    transientChurnRate: urlParams.get('transientChurnRate'),
+                    loyalPercent: urlParams.get('loyalPercent'),
+                    loyalChurnRate: urlParams.get('loyalChurnRate')
+                };
+                setAllParameters(params);
+            }
+        }
+
         // Init
+        loadFromURL();
+        updateSavedSetsList();
         updateCharts();
     </script>
 </body>
