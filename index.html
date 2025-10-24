@@ -622,7 +622,7 @@
                 <ul>
                     <li><strong>Short-term</strong>: High churn rate (~90%/month). These are exploratory users who try your product but don't stick around.</li>
                     <li><strong>Medium-term</strong>: Moderate churn rate (~10%/month). Regular users who engage but may eventually leave.</li>
-                    <li><strong>Long-term</strong>: Low churn rate (~1%/month). Your most engaged, loyal customers.</li>
+                    <li><strong>Long-term</strong>: Low churn rate (~1%/month). Your most engaged, longTerm customers.</li>
                 </ul>
                 <p>Each segment follows <strong>exponential decay</strong>: <code>remaining(t) = initial × (1 - churn)^t</code></p>
 
@@ -701,49 +701,49 @@
                 </div>
                 
                 <div class="input-wrapper">
-                    <label for="testerPercent" data-tooltip="Percentage of new customers who are exploratory users with high churn">Short-term Segment Size</label>
+                    <label for="shortTermPercent" data-tooltip="Percentage of new customers who are exploratory users with high churn">Short-term Segment Size</label>
                     <div class="input-field-container">
-                        <input type="number" id="testerPercent" value="20" min="0" max="100" step="0.1">
+                        <input type="number" id="shortTermPercent" value="20" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="testerChurnRate" data-tooltip="Monthly churn rate for short-term customers (typically 70-95%)">Short-term Churn Rate</label>
+                    <label for="shortTermChurnRate" data-tooltip="Monthly churn rate for short-term customers (typically 70-95%)">Short-term Churn Rate</label>
                     <div class="input-field-container">
-                        <input type="number" id="testerChurnRate" value="90" min="0" max="100" step="0.1">
+                        <input type="number" id="shortTermChurnRate" value="90" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="transientPercent" data-tooltip="Percentage of new customers who are regular users with moderate retention">Medium-term Segment Size</label>
+                    <label for="mediumTermPercent" data-tooltip="Percentage of new customers who are regular users with moderate retention">Medium-term Segment Size</label>
                     <div class="input-field-container">
-                        <input type="number" id="transientPercent" value="60" min="0" max="100" step="0.1">
+                        <input type="number" id="mediumTermPercent" value="60" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="transientChurnRate" data-tooltip="Monthly churn rate for medium-term customers (typically 5-15%)">Medium-term Churn Rate</label>
+                    <label for="mediumTermChurnRate" data-tooltip="Monthly churn rate for medium-term customers (typically 5-15%)">Medium-term Churn Rate</label>
                     <div class="input-field-container">
-                        <input type="number" id="transientChurnRate" value="10" min="0" max="100" step="0.1">
+                        <input type="number" id="mediumTermChurnRate" value="10" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="loyalPercent" data-tooltip="Percentage of new customers who become highly engaged with low churn">Long-term Segment Size</label>
+                    <label for="longTermPercent" data-tooltip="Percentage of new customers who become highly engaged with low churn">Long-term Segment Size</label>
                     <div class="input-field-container">
-                        <input type="number" id="loyalPercent" value="20" min="0" max="100" step="0.1">
+                        <input type="number" id="longTermPercent" value="20" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="loyalChurnRate" data-tooltip="Monthly churn rate for long-term loyal customers (typically 0.5-3%)">Long-term Churn Rate</label>
+                    <label for="longTermChurnRate" data-tooltip="Monthly churn rate for long-term longTerm customers (typically 0.5-3%)">Long-term Churn Rate</label>
                     <div class="input-field-container">
-                        <input type="number" id="loyalChurnRate" value="1" min="0" max="100" step="0.1">
+                        <input type="number" id="longTermChurnRate" value="1" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
                 </div>
@@ -884,9 +884,9 @@
         // --- Segment UI Management ---
         function updateChurnFieldStates() {
             const segments = [
-                { percentId: 'testerPercent', churnId: 'testerChurnRate' },
-                { percentId: 'transientPercent', churnId: 'transientChurnRate' },
-                { percentId: 'loyalPercent', churnId: 'loyalChurnRate' }
+                { percentId: 'shortTermPercent', churnId: 'shortTermChurnRate' },
+                { percentId: 'mediumTermPercent', churnId: 'mediumTermChurnRate' },
+                { percentId: 'longTermPercent', churnId: 'longTermChurnRate' }
             ];
 
             segments.forEach(segment => {
@@ -906,7 +906,7 @@
 
         // Add event listeners to segment size fields
         document.addEventListener('DOMContentLoaded', function() {
-            ['testerPercent', 'transientPercent', 'loyalPercent'].forEach(id => {
+            ['shortTermPercent', 'mediumTermPercent', 'longTermPercent'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateChurnFieldStates);
             });
             // Initialize on load
@@ -945,10 +945,10 @@
         }
 
         function retentionModel(t, params) {
-            const [testerPct, transientPct, loyalPct, testerChurn, transientChurn, loyalChurn] = params;
-            return testerPct * Math.pow(1 - testerChurn, t) + 
-                   transientPct * Math.pow(1 - transientChurn, t) + 
-                   loyalPct * Math.pow(1 - loyalChurn, t);
+            const [shortTermPct, mediumTermPct, longTermPct, shortTermChurn, mediumTermChurn, longTermChurn] = params;
+            return shortTermPct * Math.pow(1 - shortTermChurn, t) + 
+                   mediumTermPct * Math.pow(1 - mediumTermChurn, t) + 
+                   longTermPct * Math.pow(1 - longTermChurn, t);
         }
 
         function calculateError(params, data) {
@@ -983,12 +983,12 @@
                         const result = optimizeParameters(data);
                         
                         // Update input fields with fitted parameters
-                        document.getElementById('testerPercent').value = (result.testerPercent * 100).toFixed(1);
-                        document.getElementById('testerChurnRate').value = (result.testerChurn * 100).toFixed(1);
-                        document.getElementById('transientPercent').value = (result.transientPercent * 100).toFixed(1);
-                        document.getElementById('transientChurnRate').value = (result.transientChurn * 100).toFixed(1);
-                        document.getElementById('loyalPercent').value = (result.loyalPercent * 100).toFixed(1);
-                        document.getElementById('loyalChurnRate').value = (result.loyalChurn * 100).toFixed(1);
+                        document.getElementById('shortTermPercent').value = (result.shortTermPercent * 100).toFixed(1);
+                        document.getElementById('shortTermChurnRate').value = (result.shortTermChurn * 100).toFixed(1);
+                        document.getElementById('mediumTermPercent').value = (result.mediumTermPercent * 100).toFixed(1);
+                        document.getElementById('mediumTermChurnRate').value = (result.mediumTermChurn * 100).toFixed(1);
+                        document.getElementById('longTermPercent').value = (result.longTermPercent * 100).toFixed(1);
+                        document.getElementById('longTermChurnRate').value = (result.longTermChurn * 100).toFixed(1);
                         
                         // Update churn field states (disable if segment is 0%)
                         updateChurnFieldStates();
@@ -997,9 +997,9 @@
                         resultDiv.className = 'fit-result visible';
                         resultDiv.innerHTML = `
                             <strong>✅ Model fitted successfully!</strong><br>
-                            Tester Segment: ${(result.testerPercent * 100).toFixed(1)}% (${(result.testerChurn * 100).toFixed(1)}% churn)<br>
-                            Transient Segment: ${(result.transientPercent * 100).toFixed(1)}% (${(result.transientChurn * 100).toFixed(1)}% churn)<br>
-                            Loyal Segment: ${(result.loyalPercent * 100).toFixed(1)}% (${(result.loyalChurn * 100).toFixed(1)}% churn)<br>
+                            shortTerm Segment: ${(result.shortTermPercent * 100).toFixed(1)}% (${(result.shortTermChurn * 100).toFixed(1)}% churn)<br>
+                            mediumTerm Segment: ${(result.mediumTermPercent * 100).toFixed(1)}% (${(result.mediumTermChurn * 100).toFixed(1)}% churn)<br>
+                            longTerm Segment: ${(result.longTermPercent * 100).toFixed(1)}% (${(result.longTermChurn * 100).toFixed(1)}% churn)<br>
                             R² = ${result.rSquared.toFixed(4)} (fit quality)
                         `;
                         
@@ -1023,14 +1023,14 @@
             const firstDrop = 1 - data[1]; // How much churned in first period
             const finalRetention = data[data.length - 1];
             
-            // Initial guess: [testerPct, transientPct, loyalPct, testerChurn, transientChurn, loyalChurn]
+            // Initial guess: [shortTermPct, mediumTermPct, longTermPct, shortTermChurn, mediumTermChurn, longTermChurn]
             let bestParams = [
-                Math.min(0.4, firstDrop * 0.8),  // testerPct (estimate from first drop)
-                0.4,                              // transientPct
-                0.2,                              // loyalPct (remaining)
-                0.95,                             // testerChurn (very high)
-                0.10,                             // transientChurn (medium)
-                0.01                              // loyalChurn (low)
+                Math.min(0.4, firstDrop * 0.8),  // shortTermPct (estimate from first drop)
+                0.4,                              // mediumTermPct
+                0.2,                              // longTermPct (remaining)
+                0.95,                             // shortTermChurn (very high)
+                0.10,                             // mediumTermChurn (medium)
+                0.01                              // longTermChurn (low)
             ];
             
             // Normalize segment percentages to sum to 1
@@ -1071,18 +1071,18 @@
             const rSquared = 1 - (result.error / totalSS);
             
             // Normalize segments to sum to 100%
-            let testerPct = Math.max(0, result.params[0]);
-            let transientPct = Math.max(0, result.params[1]);
-            let loyalPct = Math.max(0, result.params[2]);
-            const total = testerPct + transientPct + loyalPct;
+            let shortTermPct = Math.max(0, result.params[0]);
+            let mediumTermPct = Math.max(0, result.params[1]);
+            let longTermPct = Math.max(0, result.params[2]);
+            const total = shortTermPct + mediumTermPct + longTermPct;
             
             return {
-                testerPercent: testerPct / total,
-                transientPercent: transientPct / total,
-                loyalPercent: loyalPct / total,
-                testerChurn: Math.max(0, Math.min(0.99, result.params[3])),
-                transientChurn: Math.max(0.001, Math.min(0.99, result.params[4])),
-                loyalChurn: Math.max(0, Math.min(0.99, result.params[5])),
+                shortTermPercent: shortTermPct / total,
+                mediumTermPercent: mediumTermPct / total,
+                longTermPercent: longTermPct / total,
+                shortTermChurn: Math.max(0, Math.min(0.99, result.params[3])),
+                mediumTermChurn: Math.max(0.001, Math.min(0.99, result.params[4])),
+                longTermChurn: Math.max(0, Math.min(0.99, result.params[5])),
                 rSquared: rSquared
             };
         }
@@ -1267,39 +1267,39 @@
 
         function updateCharts() {
             // Get input values
-            const testerPercent = parseFloat(document.getElementById('testerPercent').value) / 100;
-            const testerChurn = parseFloat(document.getElementById('testerChurnRate').value) / 100;
-            const transientPercent = parseFloat(document.getElementById('transientPercent').value) / 100;
-            const transientChurn = parseFloat(document.getElementById('transientChurnRate').value) / 100;
-            const loyalPercent = parseFloat(document.getElementById('loyalPercent').value) / 100;
-            const loyalChurn = parseFloat(document.getElementById('loyalChurnRate').value) / 100;
+            const shortTermPercent = parseFloat(document.getElementById('shortTermPercent').value) / 100;
+            const shortTermChurn = parseFloat(document.getElementById('shortTermChurnRate').value) / 100;
+            const mediumTermPercent = parseFloat(document.getElementById('mediumTermPercent').value) / 100;
+            const mediumTermChurn = parseFloat(document.getElementById('mediumTermChurnRate').value) / 100;
+            const longTermPercent = parseFloat(document.getElementById('longTermPercent').value) / 100;
+            const longTermChurn = parseFloat(document.getElementById('longTermChurnRate').value) / 100;
             const cohortSize = parseFloat(document.getElementById('cohortSize').value);
             const timePeriods = parseInt(document.getElementById('timePeriods').value);
 
             // Simple validation
-            if ([testerPercent, testerChurn, transientPercent, transientChurn, loyalPercent, loyalChurn, cohortSize, timePeriods].some(isNaN)) {
+            if ([shortTermPercent, shortTermChurn, mediumTermPercent, mediumTermChurn, longTermPercent, longTermChurn, cohortSize, timePeriods].some(isNaN)) {
                 alert('Please check your inputs for valid numbers.');
                 return;
             }
 
             // Validate that segment percentages sum to 100% (allow 99-101% range)
-            const segmentSum = testerPercent + transientPercent + loyalPercent;
+            const segmentSum = shortTermPercent + mediumTermPercent + longTermPercent;
             if (segmentSum < 0.99 || segmentSum > 1.01) {
-                alert(`Warning: Segment percentages must sum to approximately 100%.\nCurrent sum: ${(segmentSum * 100).toFixed(1)}%\n\nTester: ${(testerPercent * 100).toFixed(1)}%\nTransient: ${(transientPercent * 100).toFixed(1)}%\nLoyal: ${(loyalPercent * 100).toFixed(1)}%`);
+                alert(`Warning: Segment percentages must sum to approximately 100%.\nCurrent sum: ${(segmentSum * 100).toFixed(1)}%\n\nshortTerm: ${(shortTermPercent * 100).toFixed(1)}%\nmediumTerm: ${(mediumTermPercent * 100).toFixed(1)}%\nlongTerm: ${(longTermPercent * 100).toFixed(1)}%`);
                 return;
             }
 
-            const T = cohortSize * testerPercent;
-            const M = cohortSize * transientPercent;
-            const L = cohortSize * loyalPercent;
+            const T = cohortSize * shortTermPercent;
+            const M = cohortSize * mediumTermPercent;
+            const L = cohortSize * longTermPercent;
             const timePoints = Array.from({ length: timePeriods + 1 }, (_, i) => i);
 
             // --- RETENTION CALCULATION (3-segment model) ---
             const retentionData = timePoints.map(t => {
-                let testerRem = (testerChurn === 1) ? (t === 0 ? T : 0) : T * Math.pow(1 - testerChurn, t);
-                let transRem = (transientChurn === 1) ? (t === 0 ? M : 0) : M * Math.pow(1 - transientChurn, t);
-                let loyalRem = (loyalChurn === 1) ? (t === 0 ? L : 0) : L * Math.pow(1 - loyalChurn, t);
-                return testerRem + transRem + loyalRem;
+                let shortTermRem = (shortTermChurn === 1) ? (t === 0 ? T : 0) : T * Math.pow(1 - shortTermChurn, t);
+                let transRem = (mediumTermChurn === 1) ? (t === 0 ? M : 0) : M * Math.pow(1 - mediumTermChurn, t);
+                let longTermRem = (longTermChurn === 1) ? (t === 0 ? L : 0) : L * Math.pow(1 - longTermChurn, t);
+                return shortTermRem + transRem + longTermRem;
             });
 
             // --- KPI CALCS: MEDIAN & MEAN ---
@@ -1318,14 +1318,14 @@
                         break;
                     }
                  }
-            } else if (transientChurn > 0 || loyalChurn > 0) {
+            } else if (mediumTermChurn > 0 || longTermChurn > 0) {
                  medianLifetimeStr = '> ' + timePeriods + ' mo';
             }
 
             let meanLifetime = Infinity;
-            if (testerChurn > 0 && transientChurn > 0 && loyalChurn > 0) {
+            if (shortTermChurn > 0 && mediumTermChurn > 0 && longTermChurn > 0) {
                 // Weighted average of segment lifetimes
-                meanLifetime = (testerPercent / testerChurn) + (transientPercent / transientChurn) + (loyalPercent / loyalChurn);
+                meanLifetime = (shortTermPercent / shortTermChurn) + (mediumTermPercent / mediumTermChurn) + (longTermPercent / longTermChurn);
                 document.getElementById('meanDisplay').innerText = meanLifetime.toFixed(1) + ' mo';
             } else {
                 document.getElementById('meanDisplay').innerText = 'Infinite';
@@ -1338,22 +1338,22 @@
                 let total = 0;
                 for (let k = 0; k <= t; k++) {
                     const age = t - k;
-                    total += (T * Math.pow(1 - testerChurn, age)) + 
-                             (M * Math.pow(1 - transientChurn, age)) + 
-                             (L * Math.pow(1 - loyalChurn, age));
+                    total += (T * Math.pow(1 - shortTermChurn, age)) + 
+                             (M * Math.pow(1 - mediumTermChurn, age)) + 
+                             (L * Math.pow(1 - longTermChurn, age));
                 }
                 return total;
             });
 
             // --- KPI CALCS: ASYMPTOTE ---
             let asymptoteStr = 'No Ceiling (Linear Growth)';
-            let isLinear = (testerChurn === 0 || transientChurn === 0 || loyalChurn === 0);
+            let isLinear = (shortTermChurn === 0 || mediumTermChurn === 0 || longTermChurn === 0);
             let asymptoteVal = null;
             let linearAsymptoteData = null;
 
             if (!isLinear) {
                 // All segments have churn - finite asymptote
-                asymptoteVal = (T / testerChurn) + (M / transientChurn) + (L / loyalChurn);
+                asymptoteVal = (T / shortTermChurn) + (M / mediumTermChurn) + (L / longTermChurn);
                 asymptoteStr = Math.round(asymptoteVal).toLocaleString();
                 document.getElementById('asymptoteFormula').innerText = 'Steady state where churn equals new acquisition';
             } else {
@@ -1363,35 +1363,42 @@
                 linearAsymptoteData = timePoints.map(t => {
                     let asymptote = 0;
                     
-                    // Tester contribution
-                    if (testerChurn === 0) {
+                    // shortTerm contribution
+                    if (shortTermChurn === 0) {
                         asymptote += T * (t + 1); // Linear growth
                     } else {
-                        asymptote += T / testerChurn; // Steady state
+                        asymptote += T / shortTermChurn; // Steady state
                     }
                     
-                    // Transient contribution
-                    if (transientChurn === 0) {
+                    // mediumTerm contribution
+                    if (mediumTermChurn === 0) {
                         asymptote += M * (t + 1); // Linear growth
                     } else {
-                        asymptote += M / transientChurn; // Steady state
+                        asymptote += M / mediumTermChurn; // Steady state
                     }
                     
-                    // Loyal contribution
-                    if (loyalChurn === 0) {
+                    // longTerm contribution
+                    if (longTermChurn === 0) {
                         asymptote += L * (t + 1); // Linear growth
                     } else {
-                        asymptote += L / loyalChurn; // Steady state
+                        asymptote += L / longTermChurn; // Steady state
                     }
                     
                     return asymptote;
                 });
                 
                 const growingSegments = [];
-                if (testerChurn === 0) growingSegments.push(`${T.toFixed(0)} (tester)`);
-                if (transientChurn === 0) growingSegments.push(`${M.toFixed(0)} (transient)`);
-                if (loyalChurn === 0) growingSegments.push(`${L.toFixed(0)} (loyal)`);
-                asymptoteStr = `Linear: ${growingSegments.join(' + ')} × (t + 1) + steady state`;
+                if (shortTermChurn === 0) growingSegments.push(`${T.toFixed(0)} (short-term)`);
+                if (mediumTermChurn === 0) growingSegments.push(`${M.toFixed(0)} (medium-term)`);
+                if (longTermChurn === 0) growingSegments.push(`${L.toFixed(0)} (long-term)`);
+                
+                // Calculate steady-state contribution from segments with churn
+                let steadyState = 0;
+                if (shortTermChurn > 0) steadyState += T / shortTermChurn;
+                if (mediumTermChurn > 0) steadyState += M / mediumTermChurn;
+                if (longTermChurn > 0) steadyState += L / longTermChurn;
+                
+                asymptoteStr = `Linear: ${growingSegments.join(' + ')} × (t + 1) + ${Math.round(steadyState).toLocaleString()}`;
             }
             document.getElementById('asymptoteDisplay').innerText = asymptoteStr;
 
@@ -1547,45 +1554,45 @@
                 name: "SaaS Startup",
                 cohortSize: "1000",
                 timePeriods: "36",
-                testerPercent: "30.0",
-                testerChurnRate: "85.0",
-                transientPercent: "50.0",
-                transientChurnRate: "12.0",
-                loyalPercent: "20.0",
-                loyalChurnRate: "2.0"
+                shortTermPercent: "30.0",
+                shortTermChurnRate: "85.0",
+                mediumTermPercent: "50.0",
+                mediumTermChurnRate: "12.0",
+                longTermPercent: "20.0",
+                longTermChurnRate: "2.0"
             },
             ecommerce: {
                 name: "E-commerce",
                 cohortSize: "2000",
                 timePeriods: "24",
-                testerPercent: "40.0",
-                testerChurnRate: "70.0",
-                transientPercent: "45.0",
-                transientChurnRate: "15.0",
-                loyalPercent: "15.0",
-                loyalChurnRate: "5.0"
+                shortTermPercent: "40.0",
+                shortTermChurnRate: "70.0",
+                mediumTermPercent: "45.0",
+                mediumTermChurnRate: "15.0",
+                longTermPercent: "15.0",
+                longTermChurnRate: "5.0"
             },
             mobile: {
                 name: "Mobile App",
                 cohortSize: "5000",
                 timePeriods: "12",
-                testerPercent: "75.0",
-                testerChurnRate: "95.0",
-                transientPercent: "20.0",
-                transientChurnRate: "25.0",
-                loyalPercent: "5.0",
-                loyalChurnRate: "8.0"
+                shortTermPercent: "75.0",
+                shortTermChurnRate: "95.0",
+                mediumTermPercent: "20.0",
+                mediumTermChurnRate: "25.0",
+                longTermPercent: "5.0",
+                longTermChurnRate: "8.0"
             },
             enterprise: {
                 name: "Enterprise B2B",
                 cohortSize: "50",
                 timePeriods: "60",
-                testerPercent: "10.0",
-                testerChurnRate: "50.0",
-                transientPercent: "40.0",
-                transientChurnRate: "5.0",
-                loyalPercent: "50.0",
-                loyalChurnRate: "1.0"
+                shortTermPercent: "10.0",
+                shortTermChurnRate: "50.0",
+                mediumTermPercent: "40.0",
+                mediumTermChurnRate: "5.0",
+                longTermPercent: "50.0",
+                longTermChurnRate: "1.0"
             }
         };
 
@@ -1613,12 +1620,12 @@
             return {
                 cohortSize: document.getElementById('cohortSize').value,
                 timePeriods: document.getElementById('timePeriods').value,
-                testerPercent: document.getElementById('testerPercent').value,
-                testerChurnRate: document.getElementById('testerChurnRate').value,
-                transientPercent: document.getElementById('transientPercent').value,
-                transientChurnRate: document.getElementById('transientChurnRate').value,
-                loyalPercent: document.getElementById('loyalPercent').value,
-                loyalChurnRate: document.getElementById('loyalChurnRate').value,
+                shortTermPercent: document.getElementById('shortTermPercent').value,
+                shortTermChurnRate: document.getElementById('shortTermChurnRate').value,
+                mediumTermPercent: document.getElementById('mediumTermPercent').value,
+                mediumTermChurnRate: document.getElementById('mediumTermChurnRate').value,
+                longTermPercent: document.getElementById('longTermPercent').value,
+                longTermChurnRate: document.getElementById('longTermChurnRate').value,
                 actualData: actualRetentionData // Include fitted data if exists
             };
         }
@@ -1626,12 +1633,12 @@
         function setAllParameters(params) {
             document.getElementById('cohortSize').value = params.cohortSize;
             document.getElementById('timePeriods').value = params.timePeriods;
-            document.getElementById('testerPercent').value = params.testerPercent;
-            document.getElementById('testerChurnRate').value = params.testerChurnRate;
-            document.getElementById('transientPercent').value = params.transientPercent;
-            document.getElementById('transientChurnRate').value = params.transientChurnRate;
-            document.getElementById('loyalPercent').value = params.loyalPercent;
-            document.getElementById('loyalChurnRate').value = params.loyalChurnRate;
+            document.getElementById('shortTermPercent').value = params.shortTermPercent;
+            document.getElementById('shortTermChurnRate').value = params.shortTermChurnRate;
+            document.getElementById('mediumTermPercent').value = params.mediumTermPercent;
+            document.getElementById('mediumTermChurnRate').value = params.mediumTermChurnRate;
+            document.getElementById('longTermPercent').value = params.longTermPercent;
+            document.getElementById('longTermChurnRate').value = params.longTermChurnRate;
             
             // Restore actual retention data if it was saved
             if (params.actualData) {
@@ -1668,7 +1675,7 @@
             }
             
             // Otherwise it's a saved set
-            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
             if (savedSets[value]) {
                 setAllParameters(savedSets[value].params);
                 updateCharts();
@@ -1683,20 +1690,20 @@
                 return;
             }
             
-            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
             savedSets[name] = {
                 params: getAllParameters(),
                 timestamp: new Date().toISOString()
             };
             
-            localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
+            localStorage.setItem('simlongTermtySavedSets', JSON.stringify(savedSets));
             document.getElementById('saveSetName').value = '';
             updateSavedSetsList();
             alert(`✅ "${name}" saved successfully!`);
         }
 
         function updateSavedSetsList() {
-            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
             const group = document.getElementById('savedSetsGroup');
             group.innerHTML = '';
             
@@ -1718,7 +1725,7 @@
         }
 
         function manageSavedSets() {
-            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
             const names = Object.keys(savedSets);
             
             if (names.length === 0) {
@@ -1732,7 +1739,7 @@
             if (toDelete && savedSets[toDelete]) {
                 if (confirm(`Delete "${toDelete}"?`)) {
                     delete savedSets[toDelete];
-                    localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
+                    localStorage.setItem('simlongTermtySavedSets', JSON.stringify(savedSets));
                     updateSavedSetsList();
                     alert(`✅ "${toDelete}" deleted.`);
                 }
@@ -1745,43 +1752,43 @@
             // Get current parameters
             const cohortSize = parseFloat(document.getElementById('cohortSize').value);
             const timePeriods = parseInt(document.getElementById('timePeriods').value);
-            const testerPercent = parseFloat(document.getElementById('testerPercent').value) / 100;
-            const testerChurn = parseFloat(document.getElementById('testerChurnRate').value) / 100;
-            const transientPercent = parseFloat(document.getElementById('transientPercent').value) / 100;
-            const transientChurn = parseFloat(document.getElementById('transientChurnRate').value) / 100;
-            const loyalPercent = parseFloat(document.getElementById('loyalPercent').value) / 100;
-            const loyalChurn = parseFloat(document.getElementById('loyalChurnRate').value) / 100;
+            const shortTermPercent = parseFloat(document.getElementById('shortTermPercent').value) / 100;
+            const shortTermChurn = parseFloat(document.getElementById('shortTermChurnRate').value) / 100;
+            const mediumTermPercent = parseFloat(document.getElementById('mediumTermPercent').value) / 100;
+            const mediumTermChurn = parseFloat(document.getElementById('mediumTermChurnRate').value) / 100;
+            const longTermPercent = parseFloat(document.getElementById('longTermPercent').value) / 100;
+            const longTermChurn = parseFloat(document.getElementById('longTermChurnRate').value) / 100;
 
-            const T = cohortSize * testerPercent;
-            const M = cohortSize * transientPercent;
-            const L = cohortSize * loyalPercent;
+            const T = cohortSize * shortTermPercent;
+            const M = cohortSize * mediumTermPercent;
+            const L = cohortSize * longTermPercent;
 
             // Build CSV
             let csv = 'Month,Short-term Users,Medium-term Users,Long-term Users,Total Retention,Total Customer Base\n';
             
             for (let t = 0; t <= timePeriods; t++) {
-                const testerRem = T * Math.pow(1 - testerChurn, t);
-                const transRem = M * Math.pow(1 - transientChurn, t);
-                const loyalRem = L * Math.pow(1 - loyalChurn, t);
-                const totalRetention = testerRem + transRem + loyalRem;
+                const shortTermRem = T * Math.pow(1 - shortTermChurn, t);
+                const transRem = M * Math.pow(1 - mediumTermChurn, t);
+                const longTermRem = L * Math.pow(1 - longTermChurn, t);
+                const totalRetention = shortTermRem + transRem + longTermRem;
                 
                 // Calculate total customer base (all cohorts)
                 let totalBase = 0;
                 for (let k = 0; k <= t; k++) {
                     const age = t - k;
-                    totalBase += (T * Math.pow(1 - testerChurn, age)) + 
-                                 (M * Math.pow(1 - transientChurn, age)) + 
-                                 (L * Math.pow(1 - loyalChurn, age));
+                    totalBase += (T * Math.pow(1 - shortTermChurn, age)) + 
+                                 (M * Math.pow(1 - mediumTermChurn, age)) + 
+                                 (L * Math.pow(1 - longTermChurn, age));
                 }
                 
-                csv += `${t},${Math.round(testerRem)},${Math.round(transRem)},${Math.round(loyalRem)},${Math.round(totalRetention)},${Math.round(totalBase)}\n`;
+                csv += `${t},${Math.round(shortTermRem)},${Math.round(transRem)},${Math.round(longTermRem)},${Math.round(totalRetention)},${Math.round(totalBase)}\n`;
             }
 
             // Download
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.download = 'sim-loyalty-data.csv';
+            link.download = 'sim-longTermty-data.csv';
             link.href = url;
             link.click();
             URL.revokeObjectURL(url);
@@ -1794,12 +1801,12 @@
                 const params = {
                     cohortSize: urlParams.get('cohortSize'),
                     timePeriods: urlParams.get('timePeriods'),
-                    testerPercent: urlParams.get('testerPercent'),
-                    testerChurnRate: urlParams.get('testerChurnRate'),
-                    transientPercent: urlParams.get('transientPercent'),
-                    transientChurnRate: urlParams.get('transientChurnRate'),
-                    loyalPercent: urlParams.get('loyalPercent'),
-                    loyalChurnRate: urlParams.get('loyalChurnRate')
+                    shortTermPercent: urlParams.get('shortTermPercent'),
+                    shortTermChurnRate: urlParams.get('shortTermChurnRate'),
+                    mediumTermPercent: urlParams.get('mediumTermPercent'),
+                    mediumTermChurnRate: urlParams.get('mediumTermChurnRate'),
+                    longTermPercent: urlParams.get('longTermPercent'),
+                    longTermChurnRate: urlParams.get('longTermChurnRate')
                 };
                 setAllParameters(params);
             }
