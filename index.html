@@ -692,6 +692,7 @@
                     <li>Your actual data appears as <strong>light blue dots</strong> on the retention chart</li>
                     <li>The blue line shows the fitted model - compare visually!</li>
                 </ul>
+                <p><strong>🔬 Advanced Multi-Method Optimization:</strong> The curve fitting uses 4 different optimization algorithms simultaneously (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing) and automatically selects the best result. This ensures robust fitting across diverse retention patterns, from simple exponential decay to complex multi-segment behaviors.</p>
 
                 <h3>💾 Save & Share Your Work</h3>
                 <ul>
@@ -1152,22 +1153,57 @@
         }
 
         function optimizeParameters(data) {
-            // Nelder-Mead simplex optimization for 3-segment model
-            // Heuristics for initial guess
-            const firstDrop = 1 - data[1]; // How much churned in first period
-            const finalRetention = data[data.length - 1];
+            // Multi-method optimization: Try multiple algorithms and pick the best result
+            const methods = [];
             
-            // Initial guess: [shortTermPct, mediumTermPct, longTermPct, shortTermChurn, mediumTermChurn, longTermChurn]
+            // Method 1: Improved Grid Search + Nelder-Mead
+            methods.push(optimizeGridSearch(data));
+            
+            // Method 2: Differential Evolution
+            methods.push(optimizeDifferentialEvolution(data));
+            
+            // Method 3: Random Restart with Nelder-Mead
+            methods.push(optimizeRandomRestart(data));
+            
+            // Method 4: Simulated Annealing
+            methods.push(optimizeSimulatedAnnealing(data));
+            
+            // Select the best result based on error
+            let bestResult = methods[0];
+            let bestError = calculateError(
+                [bestResult.shortTermPercent, bestResult.mediumTermPercent, bestResult.longTermPercent,
+                 bestResult.shortTermChurn, bestResult.mediumTermChurn, bestResult.longTermChurn],
+                data
+            );
+            
+            for (let i = 1; i < methods.length; i++) {
+                const error = calculateError(
+                    [methods[i].shortTermPercent, methods[i].mediumTermPercent, methods[i].longTermPercent,
+                     methods[i].shortTermChurn, methods[i].mediumTermChurn, methods[i].longTermChurn],
+                    data
+                );
+                if (error < bestError) {
+                    bestError = error;
+                    bestResult = methods[i];
+                }
+            }
+            
+            return bestResult;
+        }
+
+        function optimizeGridSearch(data) {
+            // Original grid search + Nelder-Mead method (improved)
+            const firstDrop = 1 - data[1];
+            
             let bestParams = [
-                Math.min(0.4, firstDrop * 0.8),  // shortTermPct (estimate from first drop)
-                0.4,                              // mediumTermPct
-                0.2,                              // longTermPct (remaining)
-                0.95,                             // shortTermChurn (very high)
-                0.10,                             // mediumTermChurn (medium)
-                0.01                              // longTermChurn (low)
+                Math.min(0.4, firstDrop * 0.8),
+                0.4,
+                0.2,
+                0.95,
+                0.10,
+                0.01
             ];
             
-            // Normalize segment percentages to sum to 1
             const segmentSum = bestParams[0] + bestParams[1] + bestParams[2];
             bestParams[0] /= segmentSum;
             bestParams[1] /= segmentSum;
@@ -1175,15 +1211,15 @@
             
             let bestError = calculateError(bestParams, data);
             
-            // Grid search for a good starting point (coarser due to more dimensions)
-            for (let tp = 0; tp <= 0.5; tp += 0.2) {
-                for (let mp = 0.3; mp <= 0.6; mp += 0.15) {
+            // Finer grid search
+            for (let tp = 0; tp <= 0.6; tp += 0.15) {
+                for (let mp = 0.2; mp <= 0.7; mp += 0.15) {
                     const lp = 1 - tp - mp;
                     if (lp < 0 || lp > 1) continue;
                     
-                    for (let tc = 0.7; tc <= 0.99; tc += 0.1) {
-                        for (let mc = 0.05; mc <= 0.25; mc += 0.05) {
-                            for (let lc = 0; lc <= 0.05; lc += 0.02) {
+                    for (let tc = 0.6; tc <= 0.99; tc += 0.1) {
+                        for (let mc = 0.03; mc <= 0.30; mc += 0.06) {
+                            for (let lc = 0; lc <= 0.06; lc += 0.02) {
                                 const params = [tp, mp, lp, tc, mc, lc];
                                 const error = calculateError(params, data);
                                 if (error < bestError) {
@@ -1196,55 +1232,242 @@
                 }
             }
             
-            // Nelder-Mead refinement
             const result = nelderMead(bestParams, data);
+            return formatOptimizationResult(result.params, data);
+        }
+
+        function optimizeDifferentialEvolution(data) {
+            // Differential Evolution: Global optimization algorithm
+            const popSize = 30;
+            const maxGen = 100;
+            const F = 0.8;  // Differential weight
+            const CR = 0.9; // Crossover probability
+            const bounds = [
+                [0, 1], [0, 1], [0, 1],  // segment percentages
+                [0.5, 0.99], [0.01, 0.5], [0, 0.1]  // churn rates
+            ];
             
+            // Initialize population
+            let population = [];
+            for (let i = 0; i < popSize; i++) {
+                const individual = [
+                    Math.random(), Math.random(), Math.random(),
+                    0.5 + Math.random() * 0.49,
+                    0.01 + Math.random() * 0.49,
+                    Math.random() * 0.1
+                ];
+                // Normalize segments
+                const sum = individual[0] + individual[1] + individual[2];
+                individual[0] /= sum;
+                individual[1] /= sum;
+                individual[2] /= sum;
+                population.push(individual);
+            }
+            
+            // Evolution
+            for (let gen = 0; gen < maxGen; gen++) {
+                for (let i = 0; i < popSize; i++) {
+                    // Select three random individuals (different from i)
+                    const indices = [];
+                    while (indices.length < 3) {
+                        const idx = Math.floor(Math.random() * popSize);
+                        if (idx !== i && !indices.includes(idx)) {
+                            indices.push(idx);
+                        }
+                    }
+                    
+                    // Mutation: v = a + F * (b - c)
+                    const trial = [];
+                    for (let j = 0; j < 6; j++) {
+                        if (Math.random() < CR || j === Math.floor(Math.random() * 6)) {
+                            let value = population[indices[0]][j] + F * (population[indices[1]][j] - population[indices[2]][j]);
+                            // Clamp to bounds
+                            value = Math.max(bounds[j][0], Math.min(bounds[j][1], value));
+                            trial.push(value);
+                        } else {
+                            trial.push(population[i][j]);
+                        }
+                    }
+                    
+                    // Normalize segments
+                    const sum = trial[0] + trial[1] + trial[2];
+                    trial[0] /= sum;
+                    trial[1] /= sum;
+                    trial[2] /= sum;
+                    
+                    // Selection: Keep if better
+                    if (calculateError(trial, data) < calculateError(population[i], data)) {
+                        population[i] = trial;
+                    }
+                }
+            }
+            
+            // Find best individual
+            let bestParams = population[0];
+            let bestError = calculateError(bestParams, data);
+            for (let i = 1; i < popSize; i++) {
+                const error = calculateError(population[i], data);
+                if (error < bestError) {
+                    bestError = error;
+                    bestParams = population[i];
+                }
+            }
+            
+            // Refine with Nelder-Mead
+            const result = nelderMead(bestParams, data, 100);
+            return formatOptimizationResult(result.params, data);
+        }
+
+        function optimizeRandomRestart(data) {
+            // Random restart: Try multiple random starting points with Nelder-Mead
+            const numRestarts = 15;
+            let bestResult = null;
+            let bestError = Infinity;
+            
+            for (let i = 0; i < numRestarts; i++) {
+                // Random initial parameters
+                const tp = Math.random() * 0.6;
+                const mp = Math.random() * (1 - tp);
+                const lp = 1 - tp - mp;
+                
+                const initialParams = [
+                    tp, mp, lp,
+                    0.5 + Math.random() * 0.49,  // shortTermChurn: 0.5-0.99
+                    0.01 + Math.random() * 0.49,  // mediumTermChurn: 0.01-0.5
+                    Math.random() * 0.1           // longTermChurn: 0-0.1
+                ];
+                
+                const result = nelderMead(initialParams, data, 150);
+                const error = result.error;
+                
+                if (error < bestError) {
+                    bestError = error;
+                    bestResult = result.params;
+                }
+            }
+            
+            return formatOptimizationResult(bestResult, data);
+        }
+
+        function optimizeSimulatedAnnealing(data) {
+            // Simulated Annealing: Probabilistic optimization that can escape local minima
+            const maxIterations = 2000;
+            let temperature = 1.0;
+            const coolingRate = 0.995;
+            const minTemperature = 0.001;
+            
+            // Random initial state
+            let tp = Math.random() * 0.6;
+            let mp = Math.random() * (1 - tp);
+            let lp = 1 - tp - mp;
+            
+            let currentState = [
+                tp, mp, lp,
+                0.5 + Math.random() * 0.49,  // shortTermChurn
+                0.01 + Math.random() * 0.49,  // mediumTermChurn
+                Math.random() * 0.1           // longTermChurn
+            ];
+            
+            let currentEnergy = calculateError(currentState, data);
+            let bestState = [...currentState];
+            let bestEnergy = currentEnergy;
+            
+            for (let iter = 0; iter < maxIterations && temperature > minTemperature; iter++) {
+                // Generate neighbor by perturbing current state
+                const neighbor = currentState.map((val, idx) => {
+                    const perturbation = (Math.random() - 0.5) * 0.1 * temperature;
+                    let newVal = val + perturbation;
+                    
+                    // Apply bounds
+                    if (idx < 3) {
+                        newVal = Math.max(0, Math.min(1, newVal));
+                    } else if (idx === 3) {
+                        newVal = Math.max(0.5, Math.min(0.99, newVal));
+                    } else if (idx === 4) {
+                        newVal = Math.max(0.01, Math.min(0.5, newVal));
+                    } else {
+                        newVal = Math.max(0, Math.min(0.1, newVal));
+                    }
+                    
+                    return newVal;
+                });
+                
+                // Normalize segments
+                const sum = neighbor[0] + neighbor[1] + neighbor[2];
+                neighbor[0] /= sum;
+                neighbor[1] /= sum;
+                neighbor[2] /= sum;
+                
+                const neighborEnergy = calculateError(neighbor, data);
+                const deltaE = neighborEnergy - currentEnergy;
+                
+                // Accept neighbor if better, or with probability based on temperature
+                if (deltaE < 0 || Math.random() < Math.exp(-deltaE / temperature)) {
+                    currentState = neighbor;
+                    currentEnergy = neighborEnergy;
+                    
+                    // Update best if improved
+                    if (currentEnergy < bestEnergy) {
+                        bestState = [...currentState];
+                        bestEnergy = currentEnergy;
+                    }
+                }
+                
+                // Cool down
+                temperature *= coolingRate;
+            }
+            
+            // Final refinement with Nelder-Mead
+            const result = nelderMead(bestState, data, 100);
+            return formatOptimizationResult(result.params, data);
+        }
+
+        function formatOptimizationResult(params, data) {
             // Normalize segments to sum to 100%
-            let shortTermPct = Math.max(0, result.params[0]);
-            let mediumTermPct = Math.max(0, result.params[1]);
-            let longTermPct = Math.max(0, result.params[2]);
+            let shortTermPct = Math.max(0, params[0]);
+            let mediumTermPct = Math.max(0, params[1]);
+            let longTermPct = Math.max(0, params[2]);
             const total = shortTermPct + mediumTermPct + longTermPct;
             
-            // Normalized parameters for metrics calculation
             const normalizedParams = [
                 shortTermPct / total,
                 mediumTermPct / total,
                 longTermPct / total,
-                Math.max(0, Math.min(0.99, result.params[3])),
-                Math.max(0.001, Math.min(0.99, result.params[4])),
-                Math.max(0, Math.min(0.99, result.params[5]))
+                Math.max(0, Math.min(0.99, params[3])),
+                Math.max(0.001, Math.min(0.99, params[4])),
+                Math.max(0, Math.min(0.99, params[5]))
             ];
             
-            // Generate predicted values using normalized parameters
+            // Generate predicted values
             const predicted = data.map((_, i) => {
                 const t = i;
                 const shortTerm = normalizedParams[0] * Math.pow(1 - normalizedParams[3], t);
                 const mediumTerm = normalizedParams[1] * Math.pow(1 - normalizedParams[4], t);
                 const longTerm = normalizedParams[2] * Math.pow(1 - normalizedParams[5], t);
-                return (shortTerm + mediumTerm + longTerm); // Keep in decimal format (0-1)
+                return (shortTerm + mediumTerm + longTerm);
             });
             
-            // Calculate R² (Coefficient of Determination)
+            // Calculate R²
             const n = data.length;
             const meanActual = data.reduce((sum, val) => sum + val, 0) / n;
-            let ssRes = 0;  // Sum of squared residuals
-            let ssTot = 0;  // Total sum of squares
+            let ssRes = 0;
+            let ssTot = 0;
             for (let i = 0; i < n; i++) {
                 ssRes += Math.pow(data[i] - predicted[i], 2);
                 ssTot += Math.pow(data[i] - meanActual, 2);
             }
             const rSquared = (ssTot === 0) ? 1 : (1 - (ssRes / ssTot));
             
-            // Calculate MAPE (Mean Absolute Percentage Error)
+            // Calculate MAPE
             let mapeSum = 0;
             let mapeCount = 0;
             for (let i = 0; i < data.length; i++) {
-                if (data[i] !== 0) {  // Avoid division by zero
+                if (data[i] !== 0) {
                     mapeSum += Math.abs((data[i] - predicted[i]) / data[i]);
                     mapeCount++;
                 }
             }
-            const mape = (mapeCount > 0) ? (mapeSum / mapeCount) * 100 : 0; // As percentage
+            const mape = (mapeCount > 0) ? (mapeSum / mapeCount) * 100 : 0;
             
             return {
                 shortTermPercent: normalizedParams[0],

@@ -29,9 +29,11 @@ Divide your customer base into segments based on longevity:
 
 ### Curve Fitting with Visual Validation
 - Paste your actual retention data (percentages by month)
-- Automatically fit the three-segment model to your data
+- **Advanced multi-method optimization**: Uses 4 different algorithms simultaneously (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing) to find the best fit
+- Automatically selects the optimal result from all methods
 - **See your actual data as light blue dots** overlaid on the model prediction
 - Visually validate fit quality at a glance
+- Robust fitting across diverse retention patterns, from simple decay to complex multi-segment behaviors
 - Perfect for working with real cohort data from your analytics platform
 
 ### Built-in Presets
