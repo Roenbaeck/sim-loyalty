@@ -597,6 +597,24 @@
             color: #991b1b;
         }
 
+        .fit-result.excellent {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+        }
+
+        .fit-result.good {
+            background: #fefce8;
+            border-color: #fde047;
+            color: #854d0e;
+        }
+
+        .fit-result.poor {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
         .fit-help {
             font-size: 0.75rem;
             color: var(--text-body);
@@ -680,16 +698,57 @@
                     <li><strong>Cohort Half-Life (Median):</strong> Time when 50% of customers have churned</li>
                     <li><strong>Mean Lifetime:</strong> Average customer lifespan (weighted by segment size)</li>
                     <li><strong>Growth Asymptote:</strong> Steady-state customer base where new acquisition = total churn</li>
+                    <li><strong>Avg Error (MAPE):</strong> Average error between model and data (&lt;5% = excellent, 5-10% = good, &gt;10% = review fit visually)</li>
+                    <li><strong>R²:</strong> Variance explained (can be misleading for visual fit - use Avg Error instead)</li>
                 </ul>
+
+                <h3>⚠️ Model Limitations</h3>
+                <p>The three-segment exponential model works best for:</p>
+                <ul>
+                    <li>✅ Steady churn patterns (SaaS, subscriptions, consumer apps)</li>
+                    <li>✅ Multiple distinct customer behavior groups</li>
+                    <li>✅ Exponential decay within segments (including 0% churn = plateau)</li>
+                    <li>✅ Gradual reactivation (captured as lower effective churn rates)</li>
+                </ul>
+                <p>It may struggle with:</p>
+                <ul>
+                    <li>❌ S-curves (slow start, then rapid churn)</li>
+                    <li>❌ U-curves/Smiley patterns (retention improving over time)</li>
+                    <li>❌ Sudden step changes in retention</li>
+                    <li>❌ Massive reactivation campaigns (churned users returning en masse)</li>
+                    <li>❌ Network effects (retention improving as product matures)</li>
+                    <li>❌ Seasonal or time-varying churn rates</li>
+                </ul>
+                <p><strong>Check the Avg Error %</strong> when fitting. If &gt;10%, visually inspect the light blue dots - look for systematic patterns that the model misses.</p>
 
                 <h3>💡 Tips</h3>
                 <ul>
                     <li>Try the built-in presets to learn the model quickly</li>
                     <li>Save multiple scenarios to compare different strategies</li>
-                    <li>Use real data fitting for accuracy - the blue dots show fit quality</li>
+                    <li>Use real data fitting for accuracy - the light blue dots show fit quality</li>
+                    <li>Watch the Avg Error % - if it's high, inspect the dots visually</li>
                     <li>Export charts for presentations and reports</li>
                     <li>Share links with teammates to discuss assumptions</li>
                 </ul>
+
+                <h3>🧪 Stress Test Examples</h3>
+                <p>Try fitting these patterns to see model performance:</p>
+                
+                <p><strong>S-Curve (Poor Fit Expected):</strong><br>
+                <code>100, 95, 90, 85, 75, 60, 40, 25, 18, 15, 13, 12</code><br>
+                <em>Slow initial churn, then rapid - model struggles with this pattern</em></p>
+                
+                <p><strong>Smiley/U-Curve (Poor Fit Expected):</strong><br>
+                <code>100, 70, 50, 40, 35, 38, 42, 47, 52, 56, 60, 63</code><br>
+                <em>Retention improves over time (reactivation/network effects) - exponential decay can't capture this</em></p>
+                
+                <p><strong>Typical SaaS (Excellent Fit):</strong><br>
+                <code>100, 82, 73, 65, 58, 52, 47, 43, 39, 36, 33, 31</code><br>
+                <em>Classic exponential decay - model excels here</em></p>
+                
+                <p><strong>Plateau/Sticky Users (Excellent Fit):</strong><br>
+                <code>100, 80, 70, 65, 63, 62, 61, 60, 60, 60, 60, 60</code><br>
+                <em>Model handles this well with long-term segment at 0% churn</em></p>
             </div>
         </div>
     </div>
@@ -1020,14 +1079,35 @@
                         // Update churn field states (disable if segment is 0%)
                         updateChurnFieldStates();
                         
-                        // Show success message
-                        resultDiv.className = 'fit-result visible';
+                        // Assess fit quality using MAPE (more intuitive than R²)
+                        const mape = result.mape;
+                        const r2 = result.rSquared;
+                        let qualityIcon = '✅';
+                        let qualityText = 'Excellent fit';
+                        let qualityClass = 'excellent';
+                        let warning = '';
+                        
+                        if (mape > 10) {
+                            qualityIcon = '⚠️';
+                            qualityText = 'Poor fit';
+                            qualityClass = 'poor';
+                            warning = '<br><br><strong>⚠️ Visual Fit Issue Detected:</strong><br>The model shows significant deviations from your data (avg error: ' + mape.toFixed(1) + '%). Possible reasons:<br>• Non-exponential decay pattern (S-curves, sudden changes)<br>• Time-varying churn (seasonal effects)<br>• Customer reactivation patterns<br><br><strong>Check the light blue dots:</strong> Look for systematic patterns in the errors.';
+                        } else if (mape > 5) {
+                            qualityIcon = '⚡';
+                            qualityText = 'Good fit';
+                            qualityClass = 'good';
+                            warning = '<br><br><em>Note: Minor deviations detected (avg error: ' + mape.toFixed(1) + '%). Visually inspect the light blue dots for any patterns.</em>';
+                        }
+                        
+                        // Show success message with quality assessment
+                        resultDiv.className = 'fit-result visible ' + qualityClass;
                         resultDiv.innerHTML = `
-                            <strong>✅ Model fitted successfully!</strong><br>
-                            Short-Term Segment: ${(result.shortTermPercent * 100).toFixed(1)}% (${(result.shortTermChurn * 100).toFixed(1)}% churn)<br>
-                            Medium-Term Segment: ${(result.mediumTermPercent * 100).toFixed(1)}% (${(result.mediumTermChurn * 100).toFixed(1)}% churn)<br>
-                            Long-Term Segment: ${(result.longTermPercent * 100).toFixed(1)}% (${(result.longTermChurn * 100).toFixed(1)}% churn)<br>
-                            R² = ${result.rSquared.toFixed(4)} (fit quality)
+                            <strong>${qualityIcon} Model fitted successfully!</strong><br>
+                            Short-Term: ${(result.shortTermPercent * 100).toFixed(1)}% (${(result.shortTermChurn * 100).toFixed(1)}% churn)<br>
+                            Medium-Term: ${(result.mediumTermPercent * 100).toFixed(1)}% (${(result.mediumTermChurn * 100).toFixed(1)}% churn)<br>
+                            Long-Term: ${(result.longTermPercent * 100).toFixed(1)}% (${(result.longTermChurn * 100).toFixed(1)}% churn)<br>
+                            <br><strong>Avg Error: ${mape.toFixed(1)}%</strong> (${qualityText})<br>
+                            <small>R² = ${r2.toFixed(4)}</small>${warning}
                         `;
                         
                         // Update charts
@@ -1092,25 +1172,62 @@
             // Nelder-Mead refinement
             const result = nelderMead(bestParams, data);
             
-            // Calculate R²
-            const mean = data.reduce((a, b) => a + b, 0) / data.length;
-            const totalSS = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0);
-            const rSquared = 1 - (result.error / totalSS);
-            
             // Normalize segments to sum to 100%
             let shortTermPct = Math.max(0, result.params[0]);
             let mediumTermPct = Math.max(0, result.params[1]);
             let longTermPct = Math.max(0, result.params[2]);
             const total = shortTermPct + mediumTermPct + longTermPct;
             
+            // Normalized parameters for metrics calculation
+            const normalizedParams = [
+                shortTermPct / total,
+                mediumTermPct / total,
+                longTermPct / total,
+                Math.max(0, Math.min(0.99, result.params[3])),
+                Math.max(0.001, Math.min(0.99, result.params[4])),
+                Math.max(0, Math.min(0.99, result.params[5]))
+            ];
+            
+            // Generate predicted values using normalized parameters
+            const predicted = data.map((_, i) => {
+                const t = i;
+                const shortTerm = normalizedParams[0] * Math.pow(1 - normalizedParams[3], t);
+                const mediumTerm = normalizedParams[1] * Math.pow(1 - normalizedParams[4], t);
+                const longTerm = normalizedParams[2] * Math.pow(1 - normalizedParams[5], t);
+                return (shortTerm + mediumTerm + longTerm); // Keep in decimal format (0-1)
+            });
+            
+            // Calculate R² (Coefficient of Determination)
+            const n = data.length;
+            const meanActual = data.reduce((sum, val) => sum + val, 0) / n;
+            let ssRes = 0;  // Sum of squared residuals
+            let ssTot = 0;  // Total sum of squares
+            for (let i = 0; i < n; i++) {
+                ssRes += Math.pow(data[i] - predicted[i], 2);
+                ssTot += Math.pow(data[i] - meanActual, 2);
+            }
+            const rSquared = (ssTot === 0) ? 1 : (1 - (ssRes / ssTot));
+            
+            // Calculate MAPE (Mean Absolute Percentage Error)
+            let mapeSum = 0;
+            let mapeCount = 0;
+            for (let i = 0; i < data.length; i++) {
+                if (data[i] !== 0) {  // Avoid division by zero
+                    mapeSum += Math.abs((data[i] - predicted[i]) / data[i]);
+                    mapeCount++;
+                }
+            }
+            const mape = (mapeCount > 0) ? (mapeSum / mapeCount) * 100 : 0; // As percentage
+            
             return {
-                shortTermPercent: shortTermPct / total,
-                mediumTermPercent: mediumTermPct / total,
-                longTermPercent: longTermPct / total,
-                shortTermChurn: Math.max(0, Math.min(0.99, result.params[3])),
-                mediumTermChurn: Math.max(0.001, Math.min(0.99, result.params[4])),
-                longTermChurn: Math.max(0, Math.min(0.99, result.params[5])),
-                rSquared: rSquared
+                shortTermPercent: normalizedParams[0],
+                mediumTermPercent: normalizedParams[1],
+                longTermPercent: normalizedParams[2],
+                shortTermChurn: normalizedParams[3],
+                mediumTermChurn: normalizedParams[4],
+                longTermChurn: normalizedParams[5],
+                rSquared: rSquared,
+                mape: mape
             };
         }
 
@@ -1790,8 +1907,13 @@
             const M = cohortSize * mediumTermPercent;
             const L = cohortSize * longTermPercent;
 
-            // Build CSV
-            let csv = 'Month,Short-term Users,Medium-term Users,Long-term Users,Total Retention,Total Customer Base\n';
+            // Build CSV header - include Actual Data column if we have it
+            let csv = 'Month,Short-term Users,Medium-term Users,Long-term Users,Total Retention,Total Customer Base';
+            if (actualRetentionData && actualRetentionData.length > 0) {
+                csv += ',Actual Data (Fitted)\n';
+            } else {
+                csv += '\n';
+            }
             
             for (let t = 0; t <= timePeriods; t++) {
                 const shortTermRem = T * Math.pow(1 - shortTermChurn, t);
@@ -1808,14 +1930,21 @@
                                  (L * Math.pow(1 - longTermChurn, age));
                 }
                 
-                csv += `${t},${Math.round(shortTermRem)},${Math.round(transRem)},${Math.round(longTermRem)},${Math.round(totalRetention)},${Math.round(totalBase)}\n`;
+                csv += `${t},${Math.round(shortTermRem)},${Math.round(transRem)},${Math.round(longTermRem)},${Math.round(totalRetention)},${Math.round(totalBase)}`;
+                
+                // Add actual data point if available for this month
+                if (actualRetentionData && t < actualRetentionData.length) {
+                    const actualUsers = Math.round(actualRetentionData[t] * cohortSize);
+                    csv += `,${actualUsers}`;
+                }
+                csv += '\n';
             }
 
             // Download
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.download = 'sim-longTermty-data.csv';
+            link.download = 'sim-loyalty-data.csv';
             link.href = url;
             link.click();
             URL.revokeObjectURL(url);

@@ -116,6 +116,64 @@ Simply open `index.html` in your web browser. No installation or build process r
 - Growth sums all active cohorts at each time point
 - Asymptote (if exists): `sum(segment_size / segment_churn_rate)` for each segment
 
+## Model Limitations & Validation
+
+### When It Works Best
+The three-segment exponential model works best for:
+- ✅ Steady churn patterns (SaaS, subscriptions, consumer apps)
+- ✅ Multiple distinct customer behavior groups
+- ✅ Exponential decay within segments (including 0% churn = plateau)
+- ✅ Gradual reactivation (captured as lower effective churn rates)
+
+### Known Limitations
+May struggle with:
+- ❌ **S-curves**: Slow start, then rapid churn
+- ❌ **U-curves/Smiley patterns**: Retention improving over time
+- ❌ **Sudden step changes**: Discontinuous retention patterns
+- ❌ **Massive reactivation campaigns**: Churned users returning en masse
+- ❌ **Network effects**: Retention improving as product matures
+- ❌ **Seasonal patterns**: Time-varying churn rates
+
+### Validation
+After curve fitting:
+- **Avg Error (MAPE)**: <5% = excellent, 5-10% = good, >10% = review fit visually
+- **Visual inspection**: Compare light blue dots (actual) vs. fitted line - look for systematic patterns
+- **R² metric**: Shows variance explained but can be misleading - use Avg Error instead
+
+### 🧪 Stress Test Examples
+
+Try fitting these patterns to see model performance:
+
+**S-Curve (Poor Fit Expected):**
+```
+100, 95, 90, 85, 75, 60, 40, 25, 18, 15, 13, 12
+```
+*Slow initial churn, then rapid - model struggles with this pattern*
+
+**Smiley/U-Curve (Poor Fit Expected):**
+```
+100, 70, 50, 40, 35, 38, 42, 47, 52, 56, 60, 63
+```
+*Retention improves over time (reactivation/network effects) - exponential decay can't capture this*
+
+**Typical SaaS (Excellent Fit):**
+```
+100, 82, 73, 65, 58, 52, 47, 43, 39, 36, 33, 31
+```
+*Classic exponential decay - model excels here*
+
+**Plateau/Sticky Users (Excellent Fit):**
+```
+100, 80, 70, 65, 63, 62, 61, 60, 60, 60, 60, 60
+```
+*Model handles this well with long-term segment at 0% churn*
+
+### Stress Test Examples
+Try curve fitting these patterns to explore limitations:
+- **Plateau**: `100, 80, 70, 65, 63, 62, 61, 60, 60, 60` (poor fit expected)
+- **S-Curve**: `100, 95, 90, 85, 75, 60, 40, 25, 18, 15` (challenging)
+- **Typical SaaS**: `100, 82, 73, 65, 58, 52, 47, 43, 39` (good fit expected)
+
 ## Tips
 
 - **Start with presets** to quickly understand the model and see realistic parameters
