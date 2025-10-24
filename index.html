@@ -1361,14 +1361,21 @@
         }
 
         function calculateError(params, data) {
-            // Sum of squared errors
-            let error = 0;
+            // Use MAPE (Mean Absolute Percentage Error) instead of SSE
+            // MAPE is more robust for different retention patterns and scales
+            let mapeSum = 0;
+            let count = 0;
+            
             for (let t = 0; t < data.length; t++) {
                 const predicted = retentionModel(t, params);
                 const actual = data[t];
-                error += Math.pow(predicted - actual, 2);
+                if (actual > 0.001) { // Avoid division by very small numbers
+                    mapeSum += Math.abs((predicted - actual) / actual);
+                    count++;
+                }
             }
-            return error;
+            
+            return count > 0 ? mapeSum / count : 1000; // Return large error if no valid points
         }
 
         function fitModelToData() {
@@ -1430,7 +1437,7 @@
                             Medium-Term: ${(result.mediumTermPercent * 100).toFixed(1)}% (${(result.mediumTermChurn * 100).toFixed(1)}% churn)<br>
                             Long-Term: ${(result.longTermPercent * 100).toFixed(1)}% (${(result.longTermChurn * 100).toFixed(1)}% churn)<br>
                             <br><strong>Avg Error: ${mape.toFixed(1)}%</strong> (${qualityText})<br>
-                            <small>R² = ${r2.toFixed(4)}</small>${warning}
+                            <small>R² = ${r2.toFixed(4)} | Method: ${result.method || 'Unknown'}</small>${warning}
                         `;
                         
                         // Update charts
@@ -1448,38 +1455,61 @@
         }
 
         function optimizeParameters(data) {
-            // Multi-method optimization: Try multiple algorithms and pick the best result
-            const methods = [];
+            // Multi-method optimization: Run multiple iterations and pick the best result
+            // This ensures robust, deterministic fitting even for difficult patterns
+            const numIterations = 15; // Run each method multiple times (15 iterations × 4 methods = 60 attempts)
+            const r2Threshold = 0.999; // Stop if we achieve near-perfect fit
+            const allResults = [];
             
-            // Method 1: Improved Grid Search + Nelder-Mead
-            methods.push(optimizeGridSearch(data));
-            
-            // Method 2: Differential Evolution
-            methods.push(optimizeDifferentialEvolution(data));
-            
-            // Method 3: Random Restart with Nelder-Mead
-            methods.push(optimizeRandomRestart(data));
-            
-            // Method 4: Simulated Annealing
-            methods.push(optimizeSimulatedAnnealing(data));
+            for (let iter = 0; iter < numIterations; iter++) {
+                // Method 1: Improved Grid Search + Nelder-Mead
+                const gs = optimizeGridSearch(data);
+                gs.method = `Grid Search (iter ${iter + 1})`;
+                allResults.push(gs);
+                
+                // Method 2: Differential Evolution
+                const de = optimizeDifferentialEvolution(data);
+                de.method = `Differential Evolution (iter ${iter + 1})`;
+                allResults.push(de);
+                
+                // Method 3: Random Restart with Nelder-Mead
+                const rr = optimizeRandomRestart(data);
+                rr.method = `Random Restart (iter ${iter + 1})`;
+                allResults.push(rr);
+                
+                // Method 4: Simulated Annealing
+                const sa = optimizeSimulatedAnnealing(data);
+                sa.method = `Simulated Annealing (iter ${iter + 1})`;
+                allResults.push(sa);
+                
+                // Check if any result has achieved near-perfect fit
+                for (let i = 0; i < allResults.length; i++) {
+                    if (allResults[i].rSquared >= r2Threshold) {
+                        // Found excellent fit, return it immediately
+                        return allResults[i];
+                    }
+                }
+            }
             
             // Select the best result based on error
-            let bestResult = methods[0];
+            let bestResult = allResults[0];
             let bestError = calculateError(
                 [bestResult.shortTermPercent, bestResult.mediumTermPercent, bestResult.longTermPercent,
                  bestResult.shortTermChurn, bestResult.mediumTermChurn, bestResult.longTermChurn],
                 data
             );
+            let bestIndex = 0;
             
-            for (let i = 1; i < methods.length; i++) {
+            for (let i = 1; i < allResults.length; i++) {
                 const error = calculateError(
-                    [methods[i].shortTermPercent, methods[i].mediumTermPercent, methods[i].longTermPercent,
-                     methods[i].shortTermChurn, methods[i].mediumTermChurn, methods[i].longTermChurn],
+                    [allResults[i].shortTermPercent, allResults[i].mediumTermPercent, allResults[i].longTermPercent,
+                     allResults[i].shortTermChurn, allResults[i].mediumTermChurn, allResults[i].longTermChurn],
                     data
                 );
                 if (error < bestError) {
                     bestError = error;
-                    bestResult = methods[i];
+                    bestResult = allResults[i];
+                    bestIndex = i;
                 }
             }
             
@@ -1506,15 +1536,17 @@
             
             let bestError = calculateError(bestParams, data);
             
-            // Finer grid search
-            for (let tp = 0; tp <= 0.6; tp += 0.15) {
-                for (let mp = 0.2; mp <= 0.7; mp += 0.15) {
+            // Expanded grid search with more diverse churn rate combinations
+            // This helps find better fits for non-standard patterns like S-curves
+            for (let tp = 0; tp <= 0.7; tp += 0.1) {
+                for (let mp = 0; mp <= 0.7; mp += 0.1) {
                     const lp = 1 - tp - mp;
                     if (lp < 0 || lp > 1) continue;
                     
-                    for (let tc = 0.6; tc <= 0.99; tc += 0.1) {
-                        for (let mc = 0.03; mc <= 0.30; mc += 0.06) {
-                            for (let lc = 0; lc <= 0.06; lc += 0.02) {
+                    // Try wider range of churn combinations
+                    for (let tc = 0.5; tc <= 0.99; tc += 0.1) {
+                        for (let mc = 0.01; mc <= 0.50; mc += 0.08) {
+                            for (let lc = 0; lc <= 0.20; lc += 0.04) {
                                 const params = [tp, mp, lp, tc, mc, lc];
                                 const error = calculateError(params, data);
                                 if (error < bestError) {
@@ -1533,8 +1565,8 @@
 
         function optimizeDifferentialEvolution(data) {
             // Differential Evolution: Global optimization algorithm
-            const popSize = 30;
-            const maxGen = 100;
+            const popSize = 40; // Increased from 30 for better exploration
+            const maxGen = 150; // Increased from 100 for more convergence
             const F = 0.8;  // Differential weight
             const CR = 0.9; // Crossover probability
             const bounds = [
@@ -1615,7 +1647,7 @@
 
         function optimizeRandomRestart(data) {
             // Random restart: Try multiple random starting points with Nelder-Mead
-            const numRestarts = 15;
+            const numRestarts = 25; // Increased from 15 for better exploration
             let bestResult = null;
             let bestError = Infinity;
             
@@ -1735,21 +1767,50 @@
             
             // Sort segments by churn rate (highest to lowest) to ensure proper naming
             // This ensures short-term has highest churn, medium-term has middle, long-term has lowest
+            // Filter out segments with near-zero percentage first
+            const threshold = 0.001; // 0.1% threshold - only filter truly negligible segments
             const segments = [
-                { pct: normalizedParams[0], churn: normalizedParams[3] },
-                { pct: normalizedParams[1], churn: normalizedParams[4] },
-                { pct: normalizedParams[2], churn: normalizedParams[5] }
-            ].sort((a, b) => b.churn - a.churn);
-            
-            // Reassign to proper positions
-            normalizedParams = [
-                segments[0].pct,    // highest churn -> short-term
-                segments[1].pct,    // middle churn -> medium-term
-                segments[2].pct,    // lowest churn -> long-term
-                segments[0].churn,  // short-term churn
-                segments[1].churn,  // medium-term churn
-                segments[2].churn   // long-term churn
+                { pct: normalizedParams[0], churn: normalizedParams[3], index: 0 },
+                { pct: normalizedParams[1], churn: normalizedParams[4], index: 1 },
+                { pct: normalizedParams[2], churn: normalizedParams[5], index: 2 }
             ];
+            
+            // Count non-zero segments
+            const nonZeroSegments = segments.filter(s => s.pct >= threshold);
+            
+            if (nonZeroSegments.length === 1) {
+                // Single dominant segment - assign to long-term (lowest churn) for asymptote calculation
+                normalizedParams = [
+                    0,                        // short-term
+                    0,                        // medium-term
+                    nonZeroSegments[0].pct,   // long-term gets all
+                    0.99,                     // short-term churn (not used)
+                    0.50,                     // medium-term churn (not used)
+                    nonZeroSegments[0].churn  // long-term churn
+                ];
+            } else if (nonZeroSegments.length === 2) {
+                // Two segments - assign to short and long, leave medium at 0
+                nonZeroSegments.sort((a, b) => b.churn - a.churn);
+                normalizedParams = [
+                    nonZeroSegments[0].pct,   // highest churn -> short-term
+                    0,                        // medium-term
+                    nonZeroSegments[1].pct,   // lowest churn -> long-term
+                    nonZeroSegments[0].churn, // short-term churn
+                    0.50,                     // medium-term churn (not used)
+                    nonZeroSegments[1].churn  // long-term churn
+                ];
+            } else {
+                // Three segments - normal sorting
+                segments.sort((a, b) => b.churn - a.churn);
+                normalizedParams = [
+                    segments[0].pct,    // highest churn -> short-term
+                    segments[1].pct,    // middle churn -> medium-term
+                    segments[2].pct,    // lowest churn -> long-term
+                    segments[0].churn,  // short-term churn
+                    segments[1].churn,  // medium-term churn
+                    segments[2].churn   // long-term churn
+                ];
+            }
             
             // Generate predicted values
             const predicted = data.map((_, i) => {
