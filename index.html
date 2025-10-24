@@ -1654,6 +1654,7 @@
                     },
                     y: {
                         beginAtZero: true,
+                        stacked: true,
                         title: { display: true, text: 'Total Active Customers', font: { weight: 500 } }
                     }
                 }
@@ -1751,6 +1752,34 @@
                 return total;
             });
 
+            // Calculate segment-specific growth data for stacking
+            const shortTermGrowthData = timePoints.map(t => {
+                let total = 0;
+                for (let k = 0; k <= t; k++) {
+                    const age = t - k;
+                    total += T * Math.pow(1 - shortTermChurn, age);
+                }
+                return total;
+            });
+
+            const mediumTermGrowthData = timePoints.map(t => {
+                let total = 0;
+                for (let k = 0; k <= t; k++) {
+                    const age = t - k;
+                    total += M * Math.pow(1 - mediumTermChurn, age);
+                }
+                return total;
+            });
+
+            const longTermGrowthData = timePoints.map(t => {
+                let total = 0;
+                for (let k = 0; k <= t; k++) {
+                    const age = t - k;
+                    total += L * Math.pow(1 - longTermChurn, age);
+                }
+                return total;
+            });
+
             // --- KPI CALCS: ASYMPTOTE ---
             let asymptoteStr = 'No Ceiling (Linear Growth)';
             let isLinear = (shortTermChurn === 0 || mediumTermChurn === 0 || longTermChurn === 0);
@@ -1812,8 +1841,11 @@
             // --- UPDATE CHARTS ---
             
             // 1. Retention Update - Stacked areas for each segment
-            const retentionDatasets = [
-                {
+            const retentionDatasets = [];
+            
+            // Only add segments that have data (non-zero percentage)
+            if (longTermPercent > 0) {
+                retentionDatasets.push({
                     label: 'Long-term Segment',
                     data: longTermData,
                     borderColor: '#3b82f6',
@@ -1824,8 +1856,11 @@
                     fill: true,
                     stack: 'segments',
                     order: 4
-                },
-                {
+                });
+            }
+            
+            if (mediumTermPercent > 0) {
+                retentionDatasets.push({
                     label: 'Medium-term Segment',
                     data: mediumTermData,
                     borderColor: '#8b5cf6',
@@ -1836,8 +1871,11 @@
                     fill: true,
                     stack: 'segments',
                     order: 3
-                },
-                {
+                });
+            }
+            
+            if (shortTermPercent > 0) {
+                retentionDatasets.push({
                     label: 'Short-term Segment',
                     data: shortTermData,
                     borderColor: '#ec4899',
@@ -1848,22 +1886,24 @@
                     fill: true,
                     stack: 'segments',
                     order: 2
-                },
-                {
-                    label: 'Total Retention',
-                    data: retentionData,
-                    borderColor: '#1e293b',
-                    backgroundColor: 'transparent',
-                    borderWidth: 2.5,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    fill: false,
-                    order: 1,
-                    tension: 0.1,
-                    stack: 'total-line',  // Separate stack to prevent contribution to stacked areas
-                    yAxisID: 'y'
-                }
-            ];
+                });
+            }
+            
+            // Always add the total retention line
+            retentionDatasets.push({
+                label: 'Total Retention',
+                data: retentionData,
+                borderColor: '#1e293b',
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 6,
+                fill: false,
+                order: 1,
+                tension: 0.1,
+                stack: 'total-line',  // Separate stack to prevent contribution to stacked areas
+                yAxisID: 'y'
+            });
             
             // Add actual data points if they exist (from curve fitting)
             if (actualRetentionData && actualRetentionData.length > 0) {
@@ -1915,17 +1955,69 @@
             }
             retentionChart.update();
 
-            // 2. Growth Update
-            const growthColor = '#059669'; // Emerald green
-            const datasets = [{
+            // 2. Growth Update - Stacked areas for each segment
+            const datasets = [];
+            
+            // Only add segments that have data (non-zero percentage)
+            if (longTermPercent > 0) {
+                datasets.push({
+                    label: 'Long-term Segment',
+                    data: longTermGrowthData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    stack: 'segments',
+                    order: 4
+                });
+            }
+            
+            if (mediumTermPercent > 0) {
+                datasets.push({
+                    label: 'Medium-term Segment',
+                    data: mediumTermGrowthData,
+                    borderColor: '#8b5cf6',
+                    backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    stack: 'segments',
+                    order: 3
+                });
+            }
+            
+            if (shortTermPercent > 0) {
+                datasets.push({
+                    label: 'Short-term Segment',
+                    data: shortTermGrowthData,
+                    borderColor: '#ec4899',
+                    backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                    borderWidth: 0,
+                    pointRadius: 0,
+                    pointHoverRadius: 4,
+                    fill: true,
+                    stack: 'segments',
+                    order: 2
+                });
+            }
+            
+            // Always add the total line
+            datasets.push({
                 label: 'Total Customers',
                 data: growthData,
-                borderColor: growthColor,
-                backgroundColor: growthColor,
+                borderColor: '#1e293b',
+                backgroundColor: 'transparent',
                 borderWidth: 2.5,
                 pointRadius: 0,
-                pointHoverRadius: 6
-            }];
+                pointHoverRadius: 6,
+                fill: false,
+                order: 1,
+                tension: 0.1,
+                stack: 'total-line'
+            });
             
             // Add linear asymptote as a separate dataset if it exists
             if (linearAsymptoteData) {
@@ -1937,7 +2029,9 @@
                     borderDash: [8, 4],
                     fill: false,
                     pointRadius: 0,
-                    pointHoverRadius: 0
+                    pointHoverRadius: 0,
+                    stack: 'asymptote-line',
+                    order: 0
                 });
             }
             
