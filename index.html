@@ -337,6 +337,118 @@
             pointer-events: none;
         }
 
+        .segment-sum-indicator {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-main);
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .segment-sum-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            color: var(--text-body);
+            margin-bottom: 0.5rem;
+        }
+
+        .segment-sum-bar-container {
+            background: #e2e8f0;
+            height: 24px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .segment-sum-bar {
+            height: 100%;
+            transition: width 0.3s ease, background-color 0.3s ease;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .segment-sum-bar.valid {
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+        }
+
+        .segment-sum-bar.invalid {
+            background: linear-gradient(90deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .segment-sum-bar.over {
+            background: linear-gradient(90deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .segment-sum-text {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-heading);
+            position: absolute;
+            right: 0.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 2;
+        }
+
+        .range-slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: linear-gradient(to right, var(--primary) 0%, var(--primary) 50%, #e2e8f0 50%, #e2e8f0 100%);
+            outline: none;
+            margin-top: 0.5rem;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.15s ease;
+            margin-top: -6px; /* Center thumb on track (track is 6px, thumb is 18px, so offset by (18-6)/2 = 6px) */
+        }
+
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            transition: transform 0.15s ease;
+        }
+
+        .range-slider::-moz-range-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .range-slider::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 3px;
+        }
+
+        .range-slider::-moz-range-track {
+            height: 6px;
+            border-radius: 3px;
+            background: #e2e8f0;
+        }
+
         .update-btn {
             width: 100%;
             padding: 0.75rem;
@@ -821,6 +933,7 @@
                         <input type="number" id="shortTermPercent" value="20" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
+                    <input type="range" id="shortTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="20">
                 </div>
 
                 <div class="input-wrapper">
@@ -829,6 +942,7 @@
                         <input type="number" id="shortTermChurnRate" value="90" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
+                    <input type="range" id="shortTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="90">
                 </div>
 
                 <div class="input-wrapper">
@@ -837,6 +951,7 @@
                         <input type="number" id="mediumTermPercent" value="60" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
+                    <input type="range" id="mediumTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="60">
                 </div>
 
                 <div class="input-wrapper">
@@ -845,6 +960,7 @@
                         <input type="number" id="mediumTermChurnRate" value="10" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
+                    <input type="range" id="mediumTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="10">
                 </div>
 
                 <div class="input-wrapper">
@@ -853,6 +969,7 @@
                         <input type="number" id="longTermPercent" value="20" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
+                    <input type="range" id="longTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="20">
                 </div>
 
                 <div class="input-wrapper">
@@ -860,6 +977,16 @@
                     <div class="input-field-container">
                         <input type="number" id="longTermChurnRate" value="1" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
+                    </div>
+                    <input type="range" id="longTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="1">
+                </div>
+
+                <!-- Segment Sum Indicator -->
+                <div class="segment-sum-indicator">
+                    <div class="segment-sum-label">Segment Total</div>
+                    <div class="segment-sum-bar-container">
+                        <div class="segment-sum-bar valid" id="segmentSumBar" style="width: 100%"></div>
+                        <div class="segment-sum-text" id="segmentSumText">100%</div>
                     </div>
                 </div>
 
@@ -1023,10 +1150,102 @@
         document.addEventListener('DOMContentLoaded', function() {
             ['shortTermPercent', 'mediumTermPercent', 'longTermPercent'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateChurnFieldStates);
+                document.getElementById(id).addEventListener('input', updateSegmentSum);
             });
             // Initialize on load
             updateChurnFieldStates();
+            updateSegmentSum();
+            updateCharts(); // Initial render
+            
+            // Add auto-update listeners to all input fields
+            const paramInputs = [
+                'cohortSize', 'timePeriods',
+                'shortTermPercent', 'shortTermChurnRate',
+                'mediumTermPercent', 'mediumTermChurnRate',
+                'longTermPercent', 'longTermChurnRate'
+            ];
+            
+            paramInputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', debouncedUpdateCharts);
+                }
+            });
+            
+            // Setup slider synchronization
+            setupSliderSync('shortTermPercent');
+            setupSliderSync('shortTermChurnRate');
+            setupSliderSync('mediumTermPercent');
+            setupSliderSync('mediumTermChurnRate');
+            setupSliderSync('longTermPercent');
+            setupSliderSync('longTermChurnRate');
         });
+
+        // Bidirectional sync between input and slider
+        function setupSliderSync(inputId) {
+            const input = document.getElementById(inputId);
+            const slider = document.getElementById(inputId + 'Slider');
+            
+            if (!input || !slider) return;
+            
+            // Slider changes input
+            slider.addEventListener('input', function() {
+                input.value = this.value;
+                input.dispatchEvent(new Event('input'));
+                updateSliderBackground(slider);
+            });
+            
+            // Input changes slider
+            input.addEventListener('input', function() {
+                slider.value = this.value;
+                updateSliderBackground(slider);
+            });
+            
+            // Initialize slider background
+            updateSliderBackground(slider);
+        }
+
+        // Update slider gradient to show filled portion
+        function updateSliderBackground(slider) {
+            const min = parseFloat(slider.min) || 0;
+            const max = parseFloat(slider.max) || 100;
+            const value = parseFloat(slider.value) || 0;
+            const percentage = ((value - min) / (max - min)) * 100;
+            slider.style.background = `linear-gradient(to right, var(--primary) 0%, var(--primary) ${percentage}%, #e2e8f0 ${percentage}%, #e2e8f0 100%)`;
+        }
+
+        // Debounce function for auto-updates
+        let updateTimeout;
+        function debouncedUpdateCharts() {
+            clearTimeout(updateTimeout);
+            updateTimeout = setTimeout(() => {
+                updateCharts();
+            }, 300);
+        }
+
+        function updateSegmentSum() {
+            const shortTerm = parseFloat(document.getElementById('shortTermPercent').value) || 0;
+            const mediumTerm = parseFloat(document.getElementById('mediumTermPercent').value) || 0;
+            const longTerm = parseFloat(document.getElementById('longTermPercent').value) || 0;
+            const total = shortTerm + mediumTerm + longTerm;
+            
+            const bar = document.getElementById('segmentSumBar');
+            const text = document.getElementById('segmentSumText');
+            
+            const percentage = Math.min(total, 100);
+            bar.style.width = percentage + '%';
+            text.textContent = total.toFixed(1) + '%';
+            
+            // Update styling based on total
+            bar.classList.remove('valid', 'invalid', 'over');
+            if (Math.abs(total - 100) < 0.01) {
+                bar.classList.add('valid');
+            } else if (total > 100) {
+                bar.classList.add('over');
+            } else {
+                bar.classList.add('invalid');
+            }
+        }
 
         // --- Curve Fitting Functions ---
         function toggleFitPanel() {
@@ -1674,15 +1893,13 @@
 
             // Simple validation
             if ([shortTermPercent, shortTermChurn, mediumTermPercent, mediumTermChurn, longTermPercent, longTermChurn, cohortSize, timePeriods].some(isNaN)) {
-                alert('Please check your inputs for valid numbers.');
-                return;
+                return; // Silently skip update if invalid
             }
 
             // Validate that segment percentages sum to 100% (allow 99-101% range)
             const segmentSum = shortTermPercent + mediumTermPercent + longTermPercent;
             if (segmentSum < 0.99 || segmentSum > 1.01) {
-                alert(`Warning: Segment percentages must sum to approximately 100%.\nCurrent sum: ${(segmentSum * 100).toFixed(1)}%\n\nshortTerm: ${(shortTermPercent * 100).toFixed(1)}%\nmediumTerm: ${(mediumTermPercent * 100).toFixed(1)}%\nlongTerm: ${(longTermPercent * 100).toFixed(1)}%`);
-                return;
+                return; // Silently skip update if segments don't sum to 100%
             }
 
             const T = cohortSize * shortTermPercent;
@@ -2216,7 +2433,7 @@
             }
             
             // Otherwise it's a saved set
-            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
             if (savedSets[value]) {
                 if (confirm(`⚠️ Load "${value}"?\n\nThis will overwrite your current parameters.`)) {
                     setAllParameters(savedSets[value].params);
@@ -2233,20 +2450,20 @@
                 return;
             }
             
-            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
             savedSets[name] = {
                 params: getAllParameters(),
                 timestamp: new Date().toISOString()
             };
             
-            localStorage.setItem('simlongTermtySavedSets', JSON.stringify(savedSets));
+            localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
             document.getElementById('saveSetName').value = '';
             updateSavedSetsList();
             alert(`✅ "${name}" saved successfully!`);
         }
 
         function updateSavedSetsList() {
-            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
             const group = document.getElementById('savedSetsGroup');
             group.innerHTML = '';
             
@@ -2268,7 +2485,7 @@
         }
 
         function manageSavedSets() {
-            const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
+            const savedSets = JSON.parse(localStorage.getItem('simLoyaltySavedSets') || '{}');
             const names = Object.keys(savedSets);
             
             if (names.length === 0) {
@@ -2286,7 +2503,7 @@
             // Check if user wants to clear all
             if (action.toUpperCase() === 'CLEAR ALL') {
                 if (confirm(`⚠️ Delete ALL ${names.length} saved sets?\n\nThis cannot be undone!`)) {
-                    localStorage.removeItem('simlongTermtySavedSets');
+                    localStorage.removeItem('simLoyaltySavedSets');
                     updateSavedSetsList();
                     alert(`✅ All saved sets deleted.`);
                 }
@@ -2297,7 +2514,7 @@
             if (savedSets[action]) {
                 if (confirm(`⚠️ Delete "${action}"?\n\nThis cannot be undone!`)) {
                     delete savedSets[action];
-                    localStorage.setItem('simlongTermtySavedSets', JSON.stringify(savedSets));
+                    localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
                     updateSavedSetsList();
                     alert(`✅ "${action}" deleted.`);
                 }
