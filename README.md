@@ -116,6 +116,13 @@ Simply open `index.html` in your web browser. No installation or build process r
 - Growth sums all active cohorts at each time point
 - Asymptote (if exists): `sum(segment_size / segment_churn_rate)` for each segment
 
+### Note on Acquisition Growth
+This model assumes **fixed monthly acquisition** to isolate retention dynamics and calculate steady-state (asymptote). This lets you answer questions like:
+- "At 1,000 customers/month, what's our ceiling?"
+- "How much does improving retention lift our steady-state?"
+
+**For growing acquisition** (e.g., 1,000 → 1,100 → 1,200/month), run multiple scenarios at different acquisition levels and interpolate externally, or build your own growth projections on top of the retention insights. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.
+
 ## Model Limitations & Validation
 
 ### When It Works Best

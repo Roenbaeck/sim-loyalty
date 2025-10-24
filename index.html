@@ -660,6 +660,19 @@
                 </ul>
                 <p>Each segment follows <strong>exponential decay</strong>: <code>remaining(t) = initial × (1 - churn)^t</code></p>
 
+                <h3>🤔 Why Model Instead of Using Raw Data?</h3>
+                <p>Great question! Here's why modeling adds value:</p>
+                <ul>
+                    <li><strong>🔮 Future Prediction:</strong> Your data shows 12 months; the model predicts months 13-36+ using learned patterns</li>
+                    <li><strong>🧪 What-If Scenarios:</strong> Test "What if we reduce churn by 2%?" - impossible with historical data alone</li>
+                    <li><strong>📊 Multi-Cohort Growth:</strong> Your data = one cohort. Model = total customer base from overlapping monthly cohorts</li>
+                    <li><strong>🎯 Steady-State Planning:</strong> Calculate asymptote (ceiling) - where you'll level off at current acquisition rates</li>
+                    <li><strong>💡 Actionable Insights:</strong> "30% short-term, 50% medium-term, 20% loyal" drives strategy better than a list of numbers</li>
+                    <li><strong>📉 Noise Filtering:</strong> Model reveals underlying trend, smoothing random variation and one-time events</li>
+                    <li><strong>⚖️ Comparison:</strong> Compare products/cohorts by segment parameters, not just curves</li>
+                </ul>
+                <p><strong>Bottom line:</strong> Actual data = rearview mirror. Model = windshield. You need both to drive forward!</p>
+
                 <h3>🚀 Getting Started</h3>
                 <p><strong>Quick Start:</strong> Select a preset from <strong>Presets & Saved Sets</strong> dropdown (SaaS, E-commerce, Mobile App, or Enterprise B2B) to see example parameters.</p>
                 <p><strong>Manual Setup:</strong></p>
@@ -721,7 +734,15 @@
                 </ul>
                 <p><strong>Check the Avg Error %</strong> when fitting. If &gt;10%, visually inspect the light blue dots - look for systematic patterns that the model misses.</p>
 
-                <h3>💡 Tips</h3>
+                <h3>� Note on Acquisition Growth</h3>
+                <p>This model assumes <strong>fixed monthly acquisition</strong> to isolate retention dynamics and calculate steady-state (asymptote). This lets you answer questions like:</p>
+                <ul>
+                    <li>"At 1,000 customers/month, what's our ceiling?"</li>
+                    <li>"How much does improving retention lift our steady-state?"</li>
+                </ul>
+                <p><strong>For growing acquisition</strong> (e.g., 1,000 → 1,100 → 1,200/month), run multiple scenarios at different acquisition levels and interpolate externally, or build your own growth projections on top of the retention insights. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.</p>
+
+                <h3>�💡 Tips</h3>
                 <ul>
                     <li>Try the built-in presets to learn the model quickly</li>
                     <li>Save multiple scenarios to compare different strategies</li>
