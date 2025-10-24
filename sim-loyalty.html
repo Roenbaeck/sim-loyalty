@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sim Loyalty</title>
+    <!-- Professional Font Stack -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.1.0/chartjs-plugin-annotation.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg-main: #f8fafc;
+            --bg-panel: #ffffff;
+            --text-heading: #1e293b;
+            --text-body: #475569;
+            --border-color: #e2e8f0;
+            --accent-good: #10b981;
+            --accent-warn: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-body);
+            line-height: 1.5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* App Header */
+        .app-header {
+            background: var(--bg-panel);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .app-logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: var(--text-heading);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .app-logo svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+
+        /* Main Layout */
+        .app-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Sidebar Controls */
+        .controls-panel {
+            width: 320px;
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        .panel-title {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            color: var(--text-heading);
+            margin-bottom: 1.5rem;
+        }
+
+        .control-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-wrapper {
+            margin-bottom: 1.25rem;
+        }
+
+        .input-wrapper label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-heading);
+            margin-bottom: 0.5rem;
+        }
+
+        .input-field-container {
+            position: relative;
+        }
+
+        .input-field-container input {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            padding-right: 2.5rem; /* Space for unit */
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.925rem;
+            color: var(--text-heading);
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            background: var(--bg-main);
+        }
+
+        .input-field-container input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: #fff;
+        }
+
+        .input-field-container input:disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .input-wrapper.disabled {
+            opacity: 0.5;
+        }
+
+        .input-wrapper.disabled label {
+            color: #94a3b8;
+        }
+
+        .input-unit {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.875rem;
+            pointer-events: none;
+        }
+
+        .update-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: auto;
+        }
+
+        .update-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Main Visualization Area */
+        .visualization-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .chart-card {
+            background: var(--bg-panel);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chart-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chart-header h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--text-heading);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .kpi-item {
+            padding: 1.25rem 1.5rem;
+            border-right: 1px solid var(--border-color);
+        }
+        .kpi-item:last-child { border-right: none; }
+
+        .kpi-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+            color: var(--text-body);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-heading);
+        }
+        .kpi-value.highlight { color: var(--primary); }
+
+        .full-width .kpi-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .chart-body {
+            padding: 1.5rem;
+            background: #fff;
+            height: 400px;
+            position: relative;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .app-container {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            .controls-panel {
+                width: 100%;
+                height: auto;
+                overflow-y: visible;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 2rem;
+            }
+            .update-btn { grid-column: 1 / -1; }
+            body { height: auto; }
+            .visualization-area { overflow-y: visible; }
+        }
+
+        /* Curve Fitting Section */
+        .fit-section {
+            border-top: 2px solid var(--border-color);
+            padding-top: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .fit-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 0.75rem;
+            background: var(--bg-main);
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            transition: background 0.2s;
+        }
+
+        .fit-toggle:hover {
+            background: #e2e8f0;
+        }
+
+        .fit-toggle-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-heading);
+        }
+
+        .fit-toggle-icon {
+            transition: transform 0.2s;
+        }
+
+        .fit-toggle-icon.expanded {
+            transform: rotate(180deg);
+        }
+
+        .fit-content {
+            display: none;
+        }
+
+        .fit-content.visible {
+            display: block;
+        }
+
+        .fit-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 80px;
+            background: var(--bg-main);
+            color: var(--text-heading);
+        }
+
+        .fit-textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .fit-btn {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--accent-good);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 0.75rem;
+        }
+
+        .fit-btn:hover {
+            background-color: #059669;
+            transform: translateY(-1px);
+        }
+
+        .fit-result {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            color: #166534;
+            display: none;
+        }
+
+        .fit-result.visible {
+            display: block;
+        }
+
+        .fit-result.error {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+
+        .fit-help {
+            font-size: 0.75rem;
+            color: var(--text-body);
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .grid-container { grid-template-columns: 1fr; }
+            .controls-panel { grid-template-columns: 1fr; gap: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="app-header">
+        <div class="app-logo">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            Sim Loyalty
+        </div>
+    </header>
+
+    <!-- Main App -->
+    <div class="app-container">
+        <!-- Left Sidebar Controls -->
+        <aside class="controls-panel">
+            <div class="control-group">
+                <h3 class="panel-title">Cohort Dynamics</h3>
+                <div class="fit-help" style="margin-bottom: 1rem;">
+                    Model your customer acquisition and retention over time.
+                </div>
+                
+                <div class="input-wrapper">
+                    <label for="cohortSize">Monthly Customer Acquisition</label>
+                    <div class="input-field-container">
+                        <input type="number" id="cohortSize" value="1000" min="1" step="1">
+                        <span class="input-unit">users</span>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="timePeriods">Simulation Duration</label>
+                    <div class="input-field-container">
+                        <input type="number" id="timePeriods" value="36" min="1" step="1">
+                        <span class="input-unit">months</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3 class="panel-title">Retention Segments</h3>
+                <div class="fit-help" style="margin-bottom: 1rem;">
+                    Divide your cohort into groups based on customer longevity and retention behavior.
+                </div>
+                
+                <div class="input-wrapper">
+                    <label for="testerPercent">Short-term Segment Size</label>
+                    <div class="input-field-container">
+                        <input type="number" id="testerPercent" value="20" min="0" max="100" step="0.1">
+                        <span class="input-unit">%</span>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="testerChurnRate">Short-term Churn Rate</label>
+                    <div class="input-field-container">
+                        <input type="number" id="testerChurnRate" value="90" min="0" max="100" step="0.1">
+                        <span class="input-unit">% / mo</span>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="transientPercent">Medium-term Segment Size</label>
+                    <div class="input-field-container">
+                        <input type="number" id="transientPercent" value="60" min="0" max="100" step="0.1">
+                        <span class="input-unit">%</span>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="transientChurnRate">Medium-term Churn Rate</label>
+                    <div class="input-field-container">
+                        <input type="number" id="transientChurnRate" value="10" min="0" max="100" step="0.1">
+                        <span class="input-unit">% / mo</span>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="loyalPercent">Long-term Segment Size</label>
+                    <div class="input-field-container">
+                        <input type="number" id="loyalPercent" value="20" min="0" max="100" step="0.1">
+                        <span class="input-unit">%</span>
+                    </div>
+                </div>
+
+                <div class="input-wrapper">
+                    <label for="loyalChurnRate">Long-term Churn Rate</label>
+                    <div class="input-field-container">
+                        <input type="number" id="loyalChurnRate" value="1" min="0" max="100" step="0.1">
+                        <span class="input-unit">% / mo</span>
+                    </div>
+                </div>
+
+                <!-- Curve Fitting Section -->
+                <div class="fit-section">
+                    <div class="fit-toggle" onclick="toggleFitPanel()">
+                        <span class="fit-toggle-title">🎯 Fit Model to Data</span>
+                        <span class="fit-toggle-icon" id="fitToggleIcon">▼</span>
+                    </div>
+                    <div class="fit-content" id="fitContent">
+                        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">
+                            Retention Data (% remaining)
+                        </label>
+                        <textarea 
+                            id="retentionData" 
+                            class="fit-textarea" 
+                            placeholder="Enter retention percentages, one per line or comma-separated:&#10;100&#10;82&#10;73&#10;65&#10;58&#10;52&#10;..."></textarea>
+                        <div class="fit-help">
+                            Paste your cohort retention data starting at 100%. Each value represents the percentage of customers remaining after each period.
+                        </div>
+                        <button class="fit-btn" onclick="fitModelToData()">Fit Parameters</button>
+                        <div class="fit-result" id="fitResult"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="update-btn" onclick="updateCharts()">Run Simulation</button>
+        </aside>
+
+        <!-- Main Visualization Area -->
+        <main class="visualization-area">
+            <div class="grid-container">
+                <!-- Chart 1: Retention -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h2>Single Cohort Retention</h2>
+                    </div>
+                    <div class="kpi-grid">
+                        <div class="kpi-item">
+                            <div class="kpi-label">Cohort Half-Life</div>
+                            <div class="kpi-value" id="medianDisplay">--</div>
+                        </div>
+                        <div class="kpi-item">
+                            <div class="kpi-label">Mean Lifetime</div>
+                            <div class="kpi-value" id="meanDisplay">--</div>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="retentionChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Growth -->
+                <div class="chart-card full-width">
+                    <div class="chart-header">
+                        <h2>Total Customer Base Growth</h2>
+                    </div>
+                    <div class="kpi-grid">
+                        <div class="kpi-item" style="border-right: none;">
+                            <div class="kpi-label">Theoretical Ceiling (Asymptote)</div>
+                            <div class="kpi-value highlight" id="asymptoteDisplay">--</div>
+                            <div style="font-size: 0.8rem; color: var(--text-body); margin-top: 4px;" id="asymptoteFormula"></div>
+                        </div>
+                    </div>
+                    <div class="chart-body">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // --- Chart Global Configuration for a more professional look ---
+        Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.scale.grid.color = '#f1f5f9';
+        Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(30, 41, 59, 0.9)';
+        Chart.defaults.plugins.tooltip.padding = 12;
+        Chart.defaults.plugins.tooltip.cornerRadius = 8;
+
+        // --- Segment UI Management ---
+        function updateChurnFieldStates() {
+            const segments = [
+                { percentId: 'testerPercent', churnId: 'testerChurnRate' },
+                { percentId: 'transientPercent', churnId: 'transientChurnRate' },
+                { percentId: 'loyalPercent', churnId: 'loyalChurnRate' }
+            ];
+
+            segments.forEach(segment => {
+                const percentValue = parseFloat(document.getElementById(segment.percentId).value);
+                const churnField = document.getElementById(segment.churnId);
+                const churnWrapper = churnField.closest('.input-wrapper');
+                
+                if (percentValue === 0) {
+                    churnField.disabled = true;
+                    churnWrapper.classList.add('disabled');
+                } else {
+                    churnField.disabled = false;
+                    churnWrapper.classList.remove('disabled');
+                }
+            });
+        }
+
+        // Add event listeners to segment size fields
+        document.addEventListener('DOMContentLoaded', function() {
+            ['testerPercent', 'transientPercent', 'loyalPercent'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateChurnFieldStates);
+            });
+            // Initialize on load
+            updateChurnFieldStates();
+        });
+
+        // --- Curve Fitting Functions ---
+        function toggleFitPanel() {
+            const content = document.getElementById('fitContent');
+            const icon = document.getElementById('fitToggleIcon');
+            content.classList.toggle('visible');
+            icon.classList.toggle('expanded');
+        }
+
+        function parseRetentionData(input) {
+            // Parse input - supports comma-separated or line-separated values
+            const values = input
+                .split(/[\n,]+/)
+                .map(v => v.trim())
+                .filter(v => v.length > 0)
+                .map(v => parseFloat(v));
+            
+            // Validate
+            if (values.length < 4) {
+                throw new Error('Need at least 4 data points for fitting');
+            }
+            if (values.some(v => isNaN(v) || v < 0 || v > 100)) {
+                throw new Error('All values must be valid percentages (0-100)');
+            }
+            if (values[0] !== 100) {
+                throw new Error('First value should be 100% (starting cohort)');
+            }
+            
+            // Convert to decimals
+            return values.map(v => v / 100);
+        }
+
+        function retentionModel(t, params) {
+            const [testerPct, transientPct, loyalPct, testerChurn, transientChurn, loyalChurn] = params;
+            return testerPct * Math.pow(1 - testerChurn, t) + 
+                   transientPct * Math.pow(1 - transientChurn, t) + 
+                   loyalPct * Math.pow(1 - loyalChurn, t);
+        }
+
+        function calculateError(params, data) {
+            // Sum of squared errors
+            let error = 0;
+            for (let t = 0; t < data.length; t++) {
+                const predicted = retentionModel(t, params);
+                const actual = data[t];
+                error += Math.pow(predicted - actual, 2);
+            }
+            return error;
+        }
+
+        function fitModelToData() {
+            const resultDiv = document.getElementById('fitResult');
+            const input = document.getElementById('retentionData').value;
+            
+            try {
+                // Parse data
+                const data = parseRetentionData(input);
+                
+                // Show processing
+                resultDiv.className = 'fit-result visible';
+                resultDiv.innerHTML = '🔄 Fitting model... This may take a few seconds.';
+                
+                // Run optimization in a timeout to allow UI update
+                setTimeout(() => {
+                    try {
+                        const result = optimizeParameters(data);
+                        
+                        // Update input fields with fitted parameters
+                        document.getElementById('testerPercent').value = (result.testerPercent * 100).toFixed(1);
+                        document.getElementById('testerChurnRate').value = (result.testerChurn * 100).toFixed(1);
+                        document.getElementById('transientPercent').value = (result.transientPercent * 100).toFixed(1);
+                        document.getElementById('transientChurnRate').value = (result.transientChurn * 100).toFixed(1);
+                        document.getElementById('loyalPercent').value = (result.loyalPercent * 100).toFixed(1);
+                        document.getElementById('loyalChurnRate').value = (result.loyalChurn * 100).toFixed(1);
+                        
+                        // Update churn field states (disable if segment is 0%)
+                        updateChurnFieldStates();
+                        
+                        // Show success message
+                        resultDiv.className = 'fit-result visible';
+                        resultDiv.innerHTML = `
+                            <strong>✅ Model fitted successfully!</strong><br>
+                            Tester Segment: ${(result.testerPercent * 100).toFixed(1)}% (${(result.testerChurn * 100).toFixed(1)}% churn)<br>
+                            Transient Segment: ${(result.transientPercent * 100).toFixed(1)}% (${(result.transientChurn * 100).toFixed(1)}% churn)<br>
+                            Loyal Segment: ${(result.loyalPercent * 100).toFixed(1)}% (${(result.loyalChurn * 100).toFixed(1)}% churn)<br>
+                            R² = ${result.rSquared.toFixed(4)} (fit quality)
+                        `;
+                        
+                        // Update charts
+                        updateCharts();
+                    } catch (error) {
+                        resultDiv.className = 'fit-result visible error';
+                        resultDiv.innerHTML = '❌ Optimization failed: ' + error.message;
+                    }
+                }, 100);
+                
+            } catch (error) {
+                resultDiv.className = 'fit-result visible error';
+                resultDiv.innerHTML = '❌ ' + error.message;
+            }
+        }
+
+        function optimizeParameters(data) {
+            // Nelder-Mead simplex optimization for 3-segment model
+            // Heuristics for initial guess
+            const firstDrop = 1 - data[1]; // How much churned in first period
+            const finalRetention = data[data.length - 1];
+            
+            // Initial guess: [testerPct, transientPct, loyalPct, testerChurn, transientChurn, loyalChurn]
+            let bestParams = [
+                Math.min(0.4, firstDrop * 0.8),  // testerPct (estimate from first drop)
+                0.4,                              // transientPct
+                0.2,                              // loyalPct (remaining)
+                0.95,                             // testerChurn (very high)
+                0.10,                             // transientChurn (medium)
+                0.01                              // loyalChurn (low)
+            ];
+            
+            // Normalize segment percentages to sum to 1
+            const segmentSum = bestParams[0] + bestParams[1] + bestParams[2];
+            bestParams[0] /= segmentSum;
+            bestParams[1] /= segmentSum;
+            bestParams[2] /= segmentSum;
+            
+            let bestError = calculateError(bestParams, data);
+            
+            // Grid search for a good starting point (coarser due to more dimensions)
+            for (let tp = 0; tp <= 0.5; tp += 0.2) {
+                for (let mp = 0.3; mp <= 0.6; mp += 0.15) {
+                    const lp = 1 - tp - mp;
+                    if (lp < 0 || lp > 1) continue;
+                    
+                    for (let tc = 0.7; tc <= 0.99; tc += 0.1) {
+                        for (let mc = 0.05; mc <= 0.25; mc += 0.05) {
+                            for (let lc = 0; lc <= 0.05; lc += 0.02) {
+                                const params = [tp, mp, lp, tc, mc, lc];
+                                const error = calculateError(params, data);
+                                if (error < bestError) {
+                                    bestError = error;
+                                    bestParams = [...params];
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Nelder-Mead refinement
+            const result = nelderMead(bestParams, data);
+            
+            // Calculate R²
+            const mean = data.reduce((a, b) => a + b, 0) / data.length;
+            const totalSS = data.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0);
+            const rSquared = 1 - (result.error / totalSS);
+            
+            // Normalize segments to sum to 100%
+            let testerPct = Math.max(0, result.params[0]);
+            let transientPct = Math.max(0, result.params[1]);
+            let loyalPct = Math.max(0, result.params[2]);
+            const total = testerPct + transientPct + loyalPct;
+            
+            return {
+                testerPercent: testerPct / total,
+                transientPercent: transientPct / total,
+                loyalPercent: loyalPct / total,
+                testerChurn: Math.max(0, Math.min(0.99, result.params[3])),
+                transientChurn: Math.max(0.001, Math.min(0.99, result.params[4])),
+                loyalChurn: Math.max(0, Math.min(0.99, result.params[5])),
+                rSquared: rSquared
+            };
+        }
+
+        function nelderMead(initialParams, data, maxIterations = 200) {
+            const alpha = 1.0;  // Reflection
+            const gamma = 2.0;  // Expansion
+            const rho = 0.5;    // Contraction
+            const sigma = 0.5;  // Shrink
+            
+            // Create initial simplex
+            const n = initialParams.length;
+            let simplex = [initialParams];
+            
+            for (let i = 0; i < n; i++) {
+                const point = [...initialParams];
+                point[i] += 0.05; // Small perturbation
+                simplex.push(point);
+            }
+            
+            // Evaluate simplex
+            let errors = simplex.map(p => calculateError(p, data));
+            
+            for (let iter = 0; iter < maxIterations; iter++) {
+                // Sort by error
+                const indices = errors.map((e, i) => i).sort((a, b) => errors[a] - errors[b]);
+                simplex = indices.map(i => simplex[i]);
+                errors = indices.map(i => errors[i]);
+                
+                // Check convergence
+                if (errors[n] - errors[0] < 1e-8) break;
+                
+                // Calculate centroid (excluding worst point)
+                const centroid = new Array(n).fill(0);
+                for (let i = 0; i < n; i++) {
+                    for (let j = 0; j < n; j++) {
+                        centroid[j] += simplex[i][j];
+                    }
+                }
+                for (let j = 0; j < n; j++) {
+                    centroid[j] /= n;
+                }
+                
+                // Reflection
+                const reflected = centroid.map((c, i) => c + alpha * (c - simplex[n][i]));
+                const reflectedError = calculateError(reflected, data);
+                
+                if (reflectedError < errors[0]) {
+                    // Expansion
+                    const expanded = centroid.map((c, i) => c + gamma * (reflected[i] - c));
+                    const expandedError = calculateError(expanded, data);
+                    
+                    if (expandedError < reflectedError) {
+                        simplex[n] = expanded;
+                        errors[n] = expandedError;
+                    } else {
+                        simplex[n] = reflected;
+                        errors[n] = reflectedError;
+                    }
+                } else if (reflectedError < errors[n - 1]) {
+                    simplex[n] = reflected;
+                    errors[n] = reflectedError;
+                } else {
+                    // Contraction
+                    const contracted = centroid.map((c, i) => c + rho * (simplex[n][i] - c));
+                    const contractedError = calculateError(contracted, data);
+                    
+                    if (contractedError < errors[n]) {
+                        simplex[n] = contracted;
+                        errors[n] = contractedError;
+                    } else {
+                        // Shrink
+                        for (let i = 1; i <= n; i++) {
+                            simplex[i] = simplex[0].map((s0, j) => s0 + sigma * (simplex[i][j] - s0));
+                            errors[i] = calculateError(simplex[i], data);
+                        }
+                    }
+                }
+            }
+            
+            return { params: simplex[0], error: errors[0] };
+        }
+
+        const retentionCtx = document.getElementById('retentionChart').getContext('2d');
+        const growthCtx = document.getElementById('growthChart').getContext('2d');
+        
+        const retentionChart = new Chart(retentionCtx, {
+            type: 'line',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false // We'll rely on clear titles and single main lines usually
+                    },
+                    annotation: { annotations: {} }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Months Since Acqusition', font: { weight: 500 } },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Users Remaining', font: { weight: 500 } }
+                    }
+                }
+            }
+        });
+        
+        const growthChart = new Chart(growthCtx, {
+            type: 'line',
+            data: { labels: [], datasets: [] },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        align: 'end',
+                        labels: { boxWidth: 12, usePointStyle: true }
+                    },
+                    annotation: { annotations: {} }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Months Passed', font: { weight: 500 } },
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Total Active Customers', font: { weight: 500 } }
+                    }
+                }
+            }
+        });
+
+        function updateCharts() {
+            // Get input values
+            const testerPercent = parseFloat(document.getElementById('testerPercent').value) / 100;
+            const testerChurn = parseFloat(document.getElementById('testerChurnRate').value) / 100;
+            const transientPercent = parseFloat(document.getElementById('transientPercent').value) / 100;
+            const transientChurn = parseFloat(document.getElementById('transientChurnRate').value) / 100;
+            const loyalPercent = parseFloat(document.getElementById('loyalPercent').value) / 100;
+            const loyalChurn = parseFloat(document.getElementById('loyalChurnRate').value) / 100;
+            const cohortSize = parseFloat(document.getElementById('cohortSize').value);
+            const timePeriods = parseInt(document.getElementById('timePeriods').value);
+
+            // Simple validation
+            if ([testerPercent, testerChurn, transientPercent, transientChurn, loyalPercent, loyalChurn, cohortSize, timePeriods].some(isNaN)) {
+                alert('Please check your inputs for valid numbers.');
+                return;
+            }
+
+            // Validate that segment percentages sum to 100% (allow 99-101% range)
+            const segmentSum = testerPercent + transientPercent + loyalPercent;
+            if (segmentSum < 0.99 || segmentSum > 1.01) {
+                alert(`Warning: Segment percentages must sum to approximately 100%.\nCurrent sum: ${(segmentSum * 100).toFixed(1)}%\n\nTester: ${(testerPercent * 100).toFixed(1)}%\nTransient: ${(transientPercent * 100).toFixed(1)}%\nLoyal: ${(loyalPercent * 100).toFixed(1)}%`);
+                return;
+            }
+
+            const T = cohortSize * testerPercent;
+            const M = cohortSize * transientPercent;
+            const L = cohortSize * loyalPercent;
+            const timePoints = Array.from({ length: timePeriods + 1 }, (_, i) => i);
+
+            // --- RETENTION CALCULATION (3-segment model) ---
+            const retentionData = timePoints.map(t => {
+                let testerRem = (testerChurn === 1) ? (t === 0 ? T : 0) : T * Math.pow(1 - testerChurn, t);
+                let transRem = (transientChurn === 1) ? (t === 0 ? M : 0) : M * Math.pow(1 - transientChurn, t);
+                let loyalRem = (loyalChurn === 1) ? (t === 0 ? L : 0) : L * Math.pow(1 - loyalChurn, t);
+                return testerRem + transRem + loyalRem;
+            });
+
+            // --- KPI CALCS: MEDIAN & MEAN ---
+            let medianLifetimeStr = 'Infinite';
+            let medianLifetime = Infinity;
+            const halfCohort = cohortSize / 2;
+
+            if (retentionData[timePeriods] < halfCohort) {
+                 // Find where it crosses 50%
+                 for (let i = 0; i < timePeriods; i++) {
+                    if (retentionData[i] >= halfCohort && retentionData[i+1] < halfCohort) {
+                        // Linear interpolation for smoother display
+                        const slope = retentionData[i+1] - retentionData[i];
+                        medianLifetime = i + (halfCohort - retentionData[i]) / slope;
+                        medianLifetimeStr = medianLifetime.toFixed(1) + ' mo';
+                        break;
+                    }
+                 }
+            } else if (transientChurn > 0 || loyalChurn > 0) {
+                 medianLifetimeStr = '> ' + timePeriods + ' mo';
+            }
+
+            let meanLifetime = Infinity;
+            if (testerChurn > 0 && transientChurn > 0 && loyalChurn > 0) {
+                // Weighted average of segment lifetimes
+                meanLifetime = (testerPercent / testerChurn) + (transientPercent / transientChurn) + (loyalPercent / loyalChurn);
+                document.getElementById('meanDisplay').innerText = meanLifetime.toFixed(1) + ' mo';
+            } else {
+                document.getElementById('meanDisplay').innerText = 'Infinite';
+            }
+            document.getElementById('medianDisplay').innerText = medianLifetimeStr;
+
+            // --- GROWTH CALCULATION (3-segment model) ---
+             const growthData = timePoints.map(t => {
+                // Sum of all cohorts up to time t (each with 3 segments)
+                let total = 0;
+                for (let k = 0; k <= t; k++) {
+                    const age = t - k;
+                    total += (T * Math.pow(1 - testerChurn, age)) + 
+                             (M * Math.pow(1 - transientChurn, age)) + 
+                             (L * Math.pow(1 - loyalChurn, age));
+                }
+                return total;
+            });
+
+            // --- KPI CALCS: ASYMPTOTE ---
+            let asymptoteStr = 'No Ceiling (Linear Growth)';
+            let isLinear = (testerChurn === 0 || transientChurn === 0 || loyalChurn === 0);
+            let asymptoteVal = null;
+            let linearAsymptoteData = null;
+
+            if (!isLinear) {
+                // All segments have churn - finite asymptote
+                asymptoteVal = (T / testerChurn) + (M / transientChurn) + (L / loyalChurn);
+                asymptoteStr = Math.round(asymptoteVal).toLocaleString();
+                document.getElementById('asymptoteFormula').innerText = 'Steady state where churn equals new acquisition';
+            } else {
+                document.getElementById('asymptoteFormula').innerText = 'At least one segment has 0% churn';
+                
+                // Calculate linear asymptote - sum up the segments
+                linearAsymptoteData = timePoints.map(t => {
+                    let asymptote = 0;
+                    
+                    // Tester contribution
+                    if (testerChurn === 0) {
+                        asymptote += T * (t + 1); // Linear growth
+                    } else {
+                        asymptote += T / testerChurn; // Steady state
+                    }
+                    
+                    // Transient contribution
+                    if (transientChurn === 0) {
+                        asymptote += M * (t + 1); // Linear growth
+                    } else {
+                        asymptote += M / transientChurn; // Steady state
+                    }
+                    
+                    // Loyal contribution
+                    if (loyalChurn === 0) {
+                        asymptote += L * (t + 1); // Linear growth
+                    } else {
+                        asymptote += L / loyalChurn; // Steady state
+                    }
+                    
+                    return asymptote;
+                });
+                
+                const growingSegments = [];
+                if (testerChurn === 0) growingSegments.push(`${T.toFixed(0)} (tester)`);
+                if (transientChurn === 0) growingSegments.push(`${M.toFixed(0)} (transient)`);
+                if (loyalChurn === 0) growingSegments.push(`${L.toFixed(0)} (loyal)`);
+                asymptoteStr = `Linear: ${growingSegments.join(' + ')} × (t + 1) + steady state`;
+            }
+            document.getElementById('asymptoteDisplay').innerText = asymptoteStr;
+
+
+            // --- UPDATE CHARTS ---
+            
+            // 1. Retention Update
+            const accentColor = '#2563eb';
+            retentionChart.data = {
+                labels: timePoints,
+                datasets: [{
+                    label: 'Active Users',
+                    data: retentionData,
+                    borderColor: accentColor,
+                    backgroundColor: accentColor,
+                    borderWidth: 2.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 6,
+                    fill: {
+                        target: 'origin',
+                        above: 'rgba(37, 99, 235, 0.05)' // Very subtle fill
+                    }
+                }]
+            };
+
+            // Retention Annotations (Median and Mean lines)
+            retentionChart.options.plugins.annotation.annotations = {};
+            if (isFinite(medianLifetime) && medianLifetime <= timePeriods) {
+                 retentionChart.options.plugins.annotation.annotations.medianLine = {
+                    type: 'line',
+                    xMin: medianLifetime,
+                    xMax: medianLifetime,
+                    borderColor: '#ef4444',
+                    borderWidth: 2,
+                    borderDash: [4, 4],
+                    label: { display: true, content: 'Median', position: 'end', backgroundColor: '#ef4444', font: {size: 10} }
+                 };
+            }
+            if (isFinite(meanLifetime) && meanLifetime >= 0 && meanLifetime <= timePeriods) {
+                 retentionChart.options.plugins.annotation.annotations.meanLine = {
+                    type: 'line',
+                    xMin: meanLifetime,
+                    xMax: meanLifetime,
+                    borderColor: '#f97316',
+                    borderWidth: 2,
+                    borderDash: [6, 3],
+                    label: { display: true, content: 'Mean', position: 'start', backgroundColor: '#f97316', font: {size: 10} }
+                 };
+            }
+            retentionChart.update();
+
+            // 2. Growth Update
+            const growthColor = '#059669'; // Emerald green
+            const datasets = [{
+                label: 'Total Customers',
+                data: growthData,
+                borderColor: growthColor,
+                backgroundColor: growthColor,
+                borderWidth: 2.5,
+                pointRadius: 0,
+                pointHoverRadius: 6
+            }];
+            
+            // Add linear asymptote as a separate dataset if it exists
+            if (linearAsymptoteData) {
+                datasets.push({
+                    label: 'Linear Asymptote',
+                    data: linearAsymptoteData,
+                    borderColor: '#a855f7',
+                    borderWidth: 2,
+                    borderDash: [8, 4],
+                    fill: false,
+                    pointRadius: 0,
+                    pointHoverRadius: 0
+                });
+            }
+            
+            growthChart.data = {
+                labels: timePoints,
+                datasets: datasets
+            };
+
+            // Growth Annotations (Asymptote)
+            growthChart.options.plugins.annotation.annotations = {};
+            if (asymptoteVal !== null) {
+                 growthChart.options.plugins.annotation.annotations.ceilingLine = {
+                    type: 'line',
+                    yMin: asymptoteVal,
+                    yMax: asymptoteVal,
+                    borderColor: '#ef4444', // Red for ceiling
+                    borderWidth: 1,
+                    borderDash: [6, 6],
+                    label: { display: true, content: 'Ceiling', position: 'end', backgroundColor: 'rgba(239, 68, 68, 0.8)', font: {size: 10} }
+                 };
+                 // Ensure y-axis can see the asymptote if it's close
+                 growthChart.options.scales.y.suggestedMax = Math.max(growthData[timePeriods] * 1.1, asymptoteVal * 1.05);
+            } else {
+                growthChart.options.scales.y.suggestedMax = undefined;
+            }
+
+            growthChart.update();
+        }
+
+        // Init
+        updateCharts();
+    </script>
+</body>
+</html>
