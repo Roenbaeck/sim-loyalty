@@ -208,6 +208,19 @@
             color: var(--primary);
         }
 
+        .modal-body blockquote {
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-main);
+            border-left: 4px solid var(--primary);
+            border-radius: 4px;
+        }
+
+        .modal-body blockquote p {
+            margin-bottom: 0;
+        }
+
         /* Tooltip Styles */
         [data-tooltip] {
             position: relative;
@@ -852,7 +865,7 @@
 
                 <p>When you first start, the tap fills the bucket much faster than it leaks. However, the more water in the bucket (your <strong>total customer base</strong>), the more water is leaking out at any given moment—even if the size of the holes (your <strong>churn percentage</strong>) stays the same.</p>
 
-                <blockquote style="margin-top: 1rem; margin-bottom: 1rem; padding: 0.75rem 1rem; background: var(--bg-main); border-left: 4px solid var(--primary); border-radius: 4px;">
+                <blockquote>
                     <p><strong>The critical distinction:</strong> A 5% churn rate on 1,000 customers means losing 50. But on 100,000 customers, it means losing 5,000. The <strong>absolute loss</strong> grows as your base grows.</p>
                 </blockquote>
 
@@ -1481,6 +1494,9 @@
                         
                         // Update charts
                         updateCharts();
+                        
+                        // Update URL with the new fitted parameters
+                        updateURLState();
                     } catch (error) {
                         resultDiv.className = 'fit-result visible error';
                         resultDiv.innerHTML = '❌ Optimization failed: ' + error.message;
@@ -2636,6 +2652,7 @@
                 if (confirm('⚠️ Load this preset?\n\nThis will overwrite your current parameters.')) {
                     setAllParameters(PRESETS[value]);
                     updateCharts();
+                    updateURLState();
                 }
                 select.value = ""; // Reset selection
                 return;
@@ -2647,6 +2664,7 @@
                 if (confirm(`⚠️ Load "${value}"?\n\nThis will overwrite your current parameters.`)) {
                     setAllParameters(savedSets[value].params);
                     updateCharts();
+                    updateURLState();
                 }
                 select.value = ""; // Reset selection
             }
