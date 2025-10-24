@@ -1406,6 +1406,21 @@
                         document.getElementById('longTermPercent').value = (result.longTermPercent * 100).toFixed(1);
                         document.getElementById('longTermChurnRate').value = (result.longTermChurn * 100).toFixed(1);
                         
+                        // Sync sliders with the fitted values
+                        const sliderFields = ['shortTermPercent', 'shortTermChurnRate', 'mediumTermPercent', 
+                                              'mediumTermChurnRate', 'longTermPercent', 'longTermChurnRate'];
+                        sliderFields.forEach(fieldId => {
+                            const slider = document.getElementById(fieldId + 'Slider');
+                            const input = document.getElementById(fieldId);
+                            if (slider && input) {
+                                slider.value = input.value;
+                                updateSliderBackground(slider);
+                            }
+                        });
+                        
+                        // Update segment sum display
+                        updateSegmentSum();
+                        
                         // Update churn field states (disable if segment is 0%)
                         updateChurnFieldStates();
                         
@@ -1432,12 +1447,17 @@
                         // Show success message with quality assessment
                         resultDiv.className = 'fit-result visible ' + qualityClass;
                         resultDiv.innerHTML = `
-                            <strong>${qualityIcon} Model fitted successfully!</strong><br>
-                            Short-Term: ${(result.shortTermPercent * 100).toFixed(1)}% (${(result.shortTermChurn * 100).toFixed(1)}% churn)<br>
-                            Medium-Term: ${(result.mediumTermPercent * 100).toFixed(1)}% (${(result.mediumTermChurn * 100).toFixed(1)}% churn)<br>
-                            Long-Term: ${(result.longTermPercent * 100).toFixed(1)}% (${(result.longTermChurn * 100).toFixed(1)}% churn)<br>
-                            <br><strong>Avg Error: ${mape.toFixed(1)}%</strong> (${qualityText})<br>
-                            <small>R² = ${r2.toFixed(4)} | Method: ${result.method || 'Unknown'}</small>${warning}
+                            <strong>${qualityIcon} Model fitted successfully!</strong><br><br>
+                            <strong>Short-Term:</strong> ${(result.shortTermPercent * 100).toFixed(1)}%<br>
+                            <span style="margin-left: 1rem; color: var(--text-body);">(${(result.shortTermChurn * 100).toFixed(1)}% churn)</span><br>
+                            <strong>Medium-Term:</strong> ${(result.mediumTermPercent * 100).toFixed(1)}%<br>
+                            <span style="margin-left: 1rem; color: var(--text-body);">(${(result.mediumTermChurn * 100).toFixed(1)}% churn)</span><br>
+                            <strong>Long-Term:</strong> ${(result.longTermPercent * 100).toFixed(1)}%<br>
+                            <span style="margin-left: 1rem; color: var(--text-body);">(${(result.longTermChurn * 100).toFixed(1)}% churn)</span><br>
+                            <br><strong>Avg Error:</strong> ${mape.toFixed(1)}%<br>
+                            <span style="margin-left: 1rem; color: var(--text-body);">(${qualityText})</span><br>
+                            <strong>R²:</strong> ${r2.toFixed(4)}<br>
+                            <span style="margin-left: 1rem; color: var(--text-body);">[${result.method || 'Unknown'}]</span>${warning}
                         `;
                         
                         // Update charts
