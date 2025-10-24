@@ -735,12 +735,18 @@
                 <p><strong>Check the Avg Error %</strong> when fitting. If &gt;10%, visually inspect the light blue dots - look for systematic patterns that the model misses.</p>
 
                 <h3>� Note on Acquisition Growth</h3>
-                <p>This model assumes <strong>fixed monthly acquisition</strong> to isolate retention dynamics and calculate steady-state (asymptote). This lets you answer questions like:</p>
+                <p>This model assumes <strong>fixed monthly acquisition</strong> to isolate retention dynamics and calculate steady-state (asymptote). This assumption is realistic for:</p>
+                <ul>
+                    <li>Mature businesses in stable markets</li>
+                    <li>Companies with consistent marketing spend</li>
+                    <li>Market-share limited acquisition (e.g., B2B, niches)</li>
+                </ul>
+                <p>Fixed acquisition lets you answer key strategic questions:</p>
                 <ul>
                     <li>"At 1,000 customers/month, what's our ceiling?"</li>
                     <li>"How much does improving retention lift our steady-state?"</li>
                 </ul>
-                <p><strong>For growing acquisition</strong> (e.g., 1,000 → 1,100 → 1,200/month), run multiple scenarios at different acquisition levels and interpolate externally, or build your own growth projections on top of the retention insights. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.</p>
+                <p><strong>For high-growth scenarios</strong> (e.g., 1,000 → 1,500 → 2,000/month), run multiple scenarios at different acquisition levels and interpolate externally. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.</p>
 
                 <h3>�💡 Tips</h3>
                 <ul>

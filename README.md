@@ -117,11 +117,16 @@ Simply open `index.html` in your web browser. No installation or build process r
 - Asymptote (if exists): `sum(segment_size / segment_churn_rate)` for each segment
 
 ### Note on Acquisition Growth
-This model assumes **fixed monthly acquisition** to isolate retention dynamics and calculate steady-state (asymptote). This lets you answer questions like:
+This model assumes **fixed monthly acquisition** to isolate retention dynamics and calculate steady-state (asymptote). This assumption is realistic for:
+- Mature businesses in stable markets
+- Companies with consistent marketing spend
+- Market-share limited acquisition (e.g., B2B, niches)
+
+Fixed acquisition lets you answer key strategic questions:
 - "At 1,000 customers/month, what's our ceiling?"
 - "How much does improving retention lift our steady-state?"
 
-**For growing acquisition** (e.g., 1,000 → 1,100 → 1,200/month), run multiple scenarios at different acquisition levels and interpolate externally, or build your own growth projections on top of the retention insights. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.
+**For high-growth scenarios** (e.g., 1,000 → 1,500 → 2,000/month), run multiple scenarios at different acquisition levels and interpolate externally. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.
 
 ## Model Limitations & Validation
 
