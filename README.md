@@ -2,6 +2,8 @@
 
 A powerful, interactive customer retention and growth simulator that helps you model and predict customer base dynamics over time.
 
+![Sim Loyalty Interface](preview.png)
+
 ## Overview
 
 Sim Loyalty uses a **three-segment retention model** to simulate how customer cohorts behave over time. By dividing customers into short-term, medium-term, and long-term retention segments, you can:
