@@ -1148,6 +1148,9 @@
 
         // Add event listeners to segment size fields
         document.addEventListener('DOMContentLoaded', function() {
+            // Load state from URL if present
+            const loadedFromURL = loadURLState();
+            
             ['shortTermPercent', 'mediumTermPercent', 'longTermPercent'].forEach(id => {
                 document.getElementById(id).addEventListener('input', updateChurnFieldStates);
                 document.getElementById(id).addEventListener('input', updateSegmentSum);
@@ -1155,7 +1158,6 @@
             // Initialize on load
             updateChurnFieldStates();
             updateSegmentSum();
-            updateCharts(); // Initial render
             
             // Add auto-update listeners to all input fields
             const paramInputs = [
@@ -1179,6 +1181,13 @@
             setupSliderSync('mediumTermChurnRate');
             setupSliderSync('longTermPercent');
             setupSliderSync('longTermChurnRate');
+            
+            // Initial render (after URL state is loaded and sliders are synced)
+            updateCharts();
+            if (loadedFromURL) {
+                // If we loaded from URL, update the URL to ensure it's clean
+                updateURLState();
+            }
         });
 
         // Bidirectional sync between input and slider
@@ -1220,7 +1229,51 @@
             clearTimeout(updateTimeout);
             updateTimeout = setTimeout(() => {
                 updateCharts();
+                updateURLState(); // Update URL after chart update
             }, 300);
+        }
+
+        // Update URL with current state (for autosave/sharing)
+        function updateURLState() {
+            const params = getAllParameters();
+            delete params.actualData; // Don't include in URL (too long)
+            const urlParams = new URLSearchParams(params);
+            const newUrl = window.location.pathname + '?' + urlParams.toString();
+            
+            // Use replaceState to avoid filling browser history
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        // Load state from URL parameters on page load
+        function loadURLState() {
+            const urlParams = new URLSearchParams(window.location.search);
+            
+            if (urlParams.toString().length === 0) {
+                return false; // No URL parameters, use defaults
+            }
+            
+            const params = {};
+            const paramNames = [
+                'cohortSize', 'timePeriods',
+                'shortTermPercent', 'shortTermChurnRate',
+                'mediumTermPercent', 'mediumTermChurnRate',
+                'longTermPercent', 'longTermChurnRate'
+            ];
+            
+            let hasParams = false;
+            paramNames.forEach(name => {
+                if (urlParams.has(name)) {
+                    params[name] = urlParams.get(name);
+                    hasParams = true;
+                }
+            });
+            
+            if (hasParams) {
+                setAllParameters(params);
+                return true;
+            }
+            
+            return false;
         }
 
         function updateSegmentSum() {
@@ -2387,14 +2440,30 @@
         }
 
         function setAllParameters(params) {
-            document.getElementById('cohortSize').value = params.cohortSize;
-            document.getElementById('timePeriods').value = params.timePeriods;
-            document.getElementById('shortTermPercent').value = params.shortTermPercent;
-            document.getElementById('shortTermChurnRate').value = params.shortTermChurnRate;
-            document.getElementById('mediumTermPercent').value = params.mediumTermPercent;
-            document.getElementById('mediumTermChurnRate').value = params.mediumTermChurnRate;
-            document.getElementById('longTermPercent').value = params.longTermPercent;
-            document.getElementById('longTermChurnRate').value = params.longTermChurnRate;
+            if (params.cohortSize) document.getElementById('cohortSize').value = params.cohortSize;
+            if (params.timePeriods) document.getElementById('timePeriods').value = params.timePeriods;
+            if (params.shortTermPercent) document.getElementById('shortTermPercent').value = params.shortTermPercent;
+            if (params.shortTermChurnRate) document.getElementById('shortTermChurnRate').value = params.shortTermChurnRate;
+            if (params.mediumTermPercent) document.getElementById('mediumTermPercent').value = params.mediumTermPercent;
+            if (params.mediumTermChurnRate) document.getElementById('mediumTermChurnRate').value = params.mediumTermChurnRate;
+            if (params.longTermPercent) document.getElementById('longTermPercent').value = params.longTermPercent;
+            if (params.longTermChurnRate) document.getElementById('longTermChurnRate').value = params.longTermChurnRate;
+            
+            // Sync sliders with loaded values
+            const sliderFields = ['shortTermPercent', 'shortTermChurnRate', 'mediumTermPercent', 
+                                  'mediumTermChurnRate', 'longTermPercent', 'longTermChurnRate'];
+            sliderFields.forEach(fieldId => {
+                if (params[fieldId]) {
+                    const slider = document.getElementById(fieldId + 'Slider');
+                    if (slider) {
+                        slider.value = params[fieldId];
+                        updateSliderBackground(slider);
+                    }
+                }
+            });
+            
+            // Update segment sum display
+            updateSegmentSum();
             
             // Restore actual retention data if it was saved
             if (params.actualData) {
