@@ -26,7 +26,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/3.1.0/chartjs-plugin-annotation.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
     
     <style>
         :root {
@@ -1839,8 +1839,10 @@
             
             // Check if it's a built-in preset
             if (PRESETS[value]) {
-                setAllParameters(PRESETS[value]);
-                updateCharts();
+                if (confirm('⚠️ Load this preset?\n\nThis will overwrite your current parameters.')) {
+                    setAllParameters(PRESETS[value]);
+                    updateCharts();
+                }
                 select.value = ""; // Reset selection
                 return;
             }
@@ -1848,8 +1850,10 @@
             // Otherwise it's a saved set
             const savedSets = JSON.parse(localStorage.getItem('simlongTermtySavedSets') || '{}');
             if (savedSets[value]) {
-                setAllParameters(savedSets[value].params);
-                updateCharts();
+                if (confirm(`⚠️ Load "${value}"?\n\nThis will overwrite your current parameters.`)) {
+                    setAllParameters(savedSets[value].params);
+                    updateCharts();
+                }
                 select.value = ""; // Reset selection
             }
         }
@@ -1905,16 +1909,31 @@
             }
             
             const list = names.map((name, i) => `${i + 1}. ${name}`).join('\n');
-            const toDelete = prompt(`Your saved sets:\n${list}\n\nEnter the name of a set to DELETE (or cancel):`);
+            const action = prompt(`Your saved sets:\n${list}\n\n• Enter a set name to DELETE it\n• Type "CLEAR ALL" to delete all sets\n• Cancel to go back`);
             
-            if (toDelete && savedSets[toDelete]) {
-                if (confirm(`Delete "${toDelete}"?`)) {
-                    delete savedSets[toDelete];
+            if (!action) {
+                return; // User cancelled
+            }
+            
+            // Check if user wants to clear all
+            if (action.toUpperCase() === 'CLEAR ALL') {
+                if (confirm(`⚠️ Delete ALL ${names.length} saved sets?\n\nThis cannot be undone!`)) {
+                    localStorage.removeItem('simlongTermtySavedSets');
+                    updateSavedSetsList();
+                    alert(`✅ All saved sets deleted.`);
+                }
+                return;
+            }
+            
+            // Otherwise try to delete individual set
+            if (savedSets[action]) {
+                if (confirm(`⚠️ Delete "${action}"?\n\nThis cannot be undone!`)) {
+                    delete savedSets[action];
                     localStorage.setItem('simlongTermtySavedSets', JSON.stringify(savedSets));
                     updateSavedSetsList();
-                    alert(`✅ "${toDelete}" deleted.`);
+                    alert(`✅ "${action}" deleted.`);
                 }
-            } else if (toDelete) {
+            } else {
                 alert('⚠️ Set not found.');
             }
         }
