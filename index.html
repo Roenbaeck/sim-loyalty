@@ -852,24 +852,30 @@
                 <p><strong>Multi-Cohort Growth:</strong> Shows your total customer base when adding new cohorts monthly. The stacked areas reveal how much each segment contributes to total growth. The dashed line shows the theoretical ceiling (asymptote).</p>
 
                 <h3>🎯 Understanding Your Growth Ceiling (Asymptote)</h3>
-                <p><strong>This is one of the most powerful, non-obvious insights your simulation reveals.</strong> It predicts the maximum number of customers your business will reach if your current acquisition and churn rates remain constant.</p>
+                <p><strong>Your growth ceiling</strong> is the customer level you naturally approach when new customers per month and churn stay steady. It's the point where <strong>new in = customers out</strong>, so the total stops rising.</p>
 
                 <h4>The "Leaky Bucket" Analogy</h4>
-                <p>Imagine your customer base is a bucket of water:</p>
+                <p>Think of your business as a bucket:</p>
                 <ul>
-                    <li><strong>Acquisition:</strong> A tap pouring a fixed amount of water into the bucket each month (e.g., 1,000 users/month).</li>
-                    <li><strong>Customers:</strong> The current water level in the bucket.</li>
-                    <li><strong>Churn Rate:</strong> The size of the holes in the bucket (e.g., a 5% monthly churn). This percentage stays constant.</li>
-                    <li><strong>Absolute Churn:</strong> The amount of water actually leaking out.</li>
+                    <li><strong>Acquisition (the tap):</strong> A steady flow of new customers each month (e.g., 1,000/month).</li>
+                    <li><strong>Customers (the water level):</strong> Your total active customer base.</li>
+                    <li><strong>Churn (the holes):</strong> Each month, a fixed percent applies at the segment level; in total, the leak behaves like a percent that settles to a steady <em>effective churn</em> as cohorts accumulate.</li>
                 </ul>
 
-                <p>When you first start, the tap fills the bucket much faster than it leaks. However, the more water in the bucket (your <strong>total customer base</strong>), the more water is leaking out at any given moment—even if the size of the holes (your <strong>churn percentage</strong>) stays the same.</p>
+                <p>When you're small, the leak is tiny. As you grow, the <em>same percent</em> of a bigger base becomes a bigger absolute leak. Growth naturally slows until the leak equals the tap.</p>
 
                 <blockquote>
-                    <p><strong>The critical distinction:</strong> A 5% churn rate on 1,000 customers means losing 50. But on 100,000 customers, it means losing 5,000. The <strong>absolute loss</strong> grows as your base grows.</p>
+                    <p><strong>Rule of thumb:</strong> Ceiling ≈ <strong>monthly acquisition ÷ effective monthly churn</strong>.<br>
+                    Example: 1,000 per month and 5% churn → about <strong>20,000 customers</strong>.</p>
                 </blockquote>
 
-                <p>Eventually, you reach a point where the water leaking out perfectly equals the water pouring in. At this moment, the water level stops rising. It has hit its <em>ceiling</em>.</p>
+                <p>In this tool, your <em>effective churn</em> comes from the three segments you set (short, medium, long). Early on, the overall percent leaking each month can change as the mix of cohort ages stabilizes; the rule of thumb uses the steady-state effective churn that the model derives from your segments. We calculate and show the ceiling on the Growth chart and in the “Growth Ceiling” KPI.</p>
+
+                <p><strong>How to raise the ceiling:</strong></p>
+                <ul>
+                    <li>Increase acquisition (open the tap) → ceiling rises linearly.</li>
+                    <li>Reduce effective churn (smaller holes) → ceiling rises faster for every point of churn you cut.</li>
+                </ul>
 
                 <h3>📊 Key Metrics Explained</h3>
                 <ul>
