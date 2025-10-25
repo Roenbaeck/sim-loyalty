@@ -41,6 +41,18 @@
             --accent-warn: #f59e0b;
         }
 
+        [data-theme="dark"] {
+            --primary: #3b82f6;
+            --primary-hover: #60a5fa;
+            --bg-main: #0f172a;
+            --bg-panel: #1e293b;
+            --text-heading: #f1f5f9;
+            --text-body: #cbd5e1;
+            --border-color: #334155;
+            --accent-good: #10b981;
+            --accent-warn: #f59e0b;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -103,6 +115,34 @@
             background: var(--primary);
             border-color: var(--primary);
             color: white;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-body);
+            font-size: 1.125rem;
+            transition: all 0.2s;
+            margin-left: 0.5rem;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-main);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         /* Modal Styles */
@@ -594,9 +634,13 @@
 
         .chart-body {
             padding: 1.5rem;
-            background: #fff;
+            background: var(--bg-panel);
             height: 400px;
             position: relative;
+        }
+
+        .chart-body canvas {
+            background: transparent !important;
         }
 
         /* Responsive adjustments */
@@ -768,9 +812,14 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             Sim Loyalty
         </div>
-        <button class="help-button" onclick="toggleHelp()" aria-label="Help">
-            <span>?</span>
-        </button>
+        <div class="header-buttons">
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
+                <span id="themeIcon">🌙</span>
+            </button>
+            <button class="help-button" onclick="toggleHelp()" aria-label="Help">
+                <span>?</span>
+            </button>
+        </div>
     </header>
 
     <!-- Help Modal -->
@@ -1097,7 +1146,7 @@
                 <div class="input-wrapper">
                     <label for="saveSetName">Save Current Parameters As</label>
                     <div style="display: flex; gap: 0.5rem;">
-                        <input type="text" id="saveSetName" placeholder="My Scenario" class="input-field-container" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px;">
+                        <input type="text" id="saveSetName" placeholder="My Scenario" class="input-field-container" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-panel); color: var(--text-heading);">
                         <button class="export-btn" onclick="saveNamedSet()" style="width: auto; padding: 0.5rem 1rem;">💾</button>
                     </div>
                 </div>
@@ -1183,6 +1232,63 @@
         Chart.defaults.plugins.tooltip.padding = 12;
         Chart.defaults.plugins.tooltip.cornerRadius = 8;
 
+        // Get theme-aware colors for chart elements
+        function getChartColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                totalLine: isDark ? '#f1f5f9' : '#1e293b',
+                actualData: isDark ? '#93c5fd' : '#60a5fa',
+                asymptoteLine: isDark ? '#f59e0b' : '#f59e0b',
+                // Segment colors - blue-gray gradient for dark mode
+                shortTerm: {
+                    background: isDark ? 'rgba(41, 85, 165, 0.85)' : 'rgba(236, 72, 153, 0.7)'
+                },
+                mediumTerm: {
+                    background: isDark ? 'rgba(70, 116, 199, 0.85)' : 'rgba(139, 92, 246, 0.7)'
+                },
+                longTerm: {
+                    background: isDark ? 'rgba(118, 163, 244, 0.85)' : 'rgba(59, 130, 246, 0.7)'
+                }
+            };
+        }
+
+        // Update chart colors based on theme
+        function updateChartColors() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            
+            Chart.defaults.color = isDark ? '#cbd5e1' : '#64748b';
+            Chart.defaults.scale.grid.color = isDark ? '#334155' : '#f1f5f9';
+            Chart.defaults.plugins.tooltip.backgroundColor = isDark ? 'rgba(30, 41, 59, 0.95)' : 'rgba(30, 41, 59, 0.9)';
+            
+            // Update scale border and tick colors
+            const axisColor = isDark ? '#475569' : '#cbd5e1';
+            
+            // Update retention chart axes
+            if (typeof retentionChart !== 'undefined' && retentionChart) {
+                retentionChart.options.scales.x.grid.color = isDark ? '#334155' : '#f1f5f9';
+                retentionChart.options.scales.x.ticks = { color: isDark ? '#cbd5e1' : '#64748b' };
+                retentionChart.options.scales.x.border = { color: axisColor };
+                retentionChart.options.scales.y.grid.color = isDark ? '#334155' : '#f1f5f9';
+                retentionChart.options.scales.y.ticks = { color: isDark ? '#cbd5e1' : '#64748b' };
+                retentionChart.options.scales.y.border = { color: axisColor };
+            }
+            
+            // Update growth chart axes
+            if (typeof growthChart !== 'undefined' && growthChart) {
+                growthChart.options.scales.x.grid.color = isDark ? '#334155' : '#f1f5f9';
+                growthChart.options.scales.x.ticks = { color: isDark ? '#cbd5e1' : '#64748b' };
+                growthChart.options.scales.x.border = { color: axisColor };
+                growthChart.options.scales.y.grid.color = isDark ? '#334155' : '#f1f5f9';
+                growthChart.options.scales.y.ticks = { color: isDark ? '#cbd5e1' : '#64748b' };
+                growthChart.options.scales.y.border = { color: axisColor };
+            }
+            
+            // Update existing charts if they exist - this will trigger updateCharts which uses getChartColors()
+            if (typeof retentionChart !== 'undefined' && retentionChart) {
+                updateCharts();
+            }
+        }
+
         // --- Segment UI Management ---
         function updateChurnFieldStates() {
             const segments = [
@@ -1208,6 +1314,9 @@
 
         // Add event listeners to segment size fields
         document.addEventListener('DOMContentLoaded', function() {
+            // Load theme preference
+            loadTheme();
+            
             // Load state from URL if present
             const loadedFromURL = loadURLState();
             
@@ -2036,12 +2145,16 @@
                 scales: {
                     x: {
                         title: { display: true, text: 'Months Since Acqusition', font: { weight: 500 } },
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: { color: '#64748b' },
+                        border: { color: '#cbd5e1' }
                     },
                     y: {
                         beginAtZero: true,
                         stacked: true,
-                        title: { display: true, text: 'Users Remaining', font: { weight: 500 } }
+                        title: { display: true, text: 'Users Remaining', font: { weight: 500 } },
+                        ticks: { color: '#64748b' },
+                        border: { color: '#cbd5e1' }
                     }
                 }
             }
@@ -2084,12 +2197,16 @@
                 scales: {
                     x: {
                         title: { display: true, text: 'Months Passed', font: { weight: 500 } },
-                        grid: { display: false }
+                        grid: { display: false },
+                        ticks: { color: '#64748b' },
+                        border: { color: '#cbd5e1' }
                     },
                     y: {
                         beginAtZero: true,
                         stacked: true,
-                        title: { display: true, text: 'Total Active Customers', font: { weight: 500 } }
+                        title: { display: true, text: 'Total Active Customers', font: { weight: 500 } },
+                        ticks: { color: '#64748b' },
+                        border: { color: '#cbd5e1' }
                     }
                 }
             }
@@ -2272,6 +2389,9 @@
 
             // --- UPDATE CHARTS ---
             
+            // Get theme-aware colors
+            const chartColors = getChartColors();
+            
             // 1. Retention Update - Stacked areas for each segment
             const retentionDatasets = [];
             
@@ -2280,8 +2400,8 @@
                 retentionDatasets.push({
                     label: 'Long-term Segment',
                     data: longTermData,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: chartColors.longTerm.border,
+                    backgroundColor: chartColors.longTerm.background,
                     borderWidth: 0,
                     pointRadius: 0,
                     pointHoverRadius: 4,
@@ -2295,8 +2415,8 @@
                 retentionDatasets.push({
                     label: 'Medium-term Segment',
                     data: mediumTermData,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                    borderColor: chartColors.mediumTerm.border,
+                    backgroundColor: chartColors.mediumTerm.background,
                     borderWidth: 0,
                     pointRadius: 0,
                     pointHoverRadius: 4,
@@ -2310,8 +2430,8 @@
                 retentionDatasets.push({
                     label: 'Short-term Segment',
                     data: shortTermData,
-                    borderColor: '#ec4899',
-                    backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                    borderColor: chartColors.shortTerm.border,
+                    backgroundColor: chartColors.shortTerm.background,
                     borderWidth: 0,
                     pointRadius: 0,
                     pointHoverRadius: 4,
@@ -2325,7 +2445,7 @@
             retentionDatasets.push({
                 label: 'Total Retention',
                 data: retentionData,
-                borderColor: '#1e293b',
+                borderColor: chartColors.totalLine,
                 backgroundColor: 'transparent',
                 borderWidth: 2.5,
                 pointRadius: 0,
@@ -2346,8 +2466,8 @@
                     label: 'Actual Data',
                     data: actualPoints,
                     type: 'scatter',
-                    borderColor: '#1e40af',
-                    backgroundColor: '#3b82f6',
+                    borderColor: chartColors.actualData,
+                    backgroundColor: chartColors.actualData,
                     pointRadius: 5,
                     pointHoverRadius: 7,
                     borderWidth: 2,
@@ -2395,8 +2515,8 @@
                 datasets.push({
                     label: 'Long-term Segment',
                     data: longTermGrowthData,
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                    borderColor: chartColors.longTerm.border,
+                    backgroundColor: chartColors.longTerm.background,
                     borderWidth: 0,
                     pointRadius: 0,
                     pointHoverRadius: 4,
@@ -2410,8 +2530,8 @@
                 datasets.push({
                     label: 'Medium-term Segment',
                     data: mediumTermGrowthData,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.7)',
+                    borderColor: chartColors.mediumTerm.border,
+                    backgroundColor: chartColors.mediumTerm.background,
                     borderWidth: 0,
                     pointRadius: 0,
                     pointHoverRadius: 4,
@@ -2425,8 +2545,8 @@
                 datasets.push({
                     label: 'Short-term Segment',
                     data: shortTermGrowthData,
-                    borderColor: '#ec4899',
-                    backgroundColor: 'rgba(236, 72, 153, 0.7)',
+                    borderColor: chartColors.shortTerm.border,
+                    backgroundColor: chartColors.shortTerm.background,
                     borderWidth: 0,
                     pointRadius: 0,
                     pointHoverRadius: 4,
@@ -2440,7 +2560,7 @@
             datasets.push({
                 label: 'Total Customers',
                 data: growthData,
-                borderColor: '#1e293b',
+                borderColor: chartColors.totalLine,
                 backgroundColor: 'transparent',
                 borderWidth: 2.5,
                 pointRadius: 0,
@@ -2503,6 +2623,39 @@
             if (event.target.id === 'helpModal') {
                 toggleHelp();
             }
+        }
+
+        // Theme toggle functionality
+        function toggleTheme() {
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update icon
+            const icon = document.getElementById('themeIcon');
+            icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Update chart colors
+            updateChartColors();
+        }
+
+        // Load saved theme on page load
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            const html = document.documentElement;
+            html.setAttribute('data-theme', savedTheme);
+            
+            // Update icon
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            }
+            
+            // Update chart colors
+            updateChartColors();
         }
 
         // Keyboard support for help modal
