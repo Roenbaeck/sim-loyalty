@@ -1596,15 +1596,15 @@
                         resultDiv.innerHTML = `
                             <strong>${qualityIcon} Model fitted successfully!</strong><br><br>
                             <strong>Short-Term:</strong> ${(result.shortTermPercent * 100).toFixed(1)}%<br>
-                            <span style="margin-left: 1rem; color: var(--text-body);">(${(result.shortTermChurn * 100).toFixed(1)}% churn)</span><br>
+                            <span style="margin-left: 1rem; opacity: 0.7;">(${(result.shortTermChurn * 100).toFixed(1)}% churn)</span><br>
                             <strong>Medium-Term:</strong> ${(result.mediumTermPercent * 100).toFixed(1)}%<br>
-                            <span style="margin-left: 1rem; color: var(--text-body);">(${(result.mediumTermChurn * 100).toFixed(1)}% churn)</span><br>
+                            <span style="margin-left: 1rem; opacity: 0.7;">(${(result.mediumTermChurn * 100).toFixed(1)}% churn)</span><br>
                             <strong>Long-Term:</strong> ${(result.longTermPercent * 100).toFixed(1)}%<br>
-                            <span style="margin-left: 1rem; color: var(--text-body);">(${(result.longTermChurn * 100).toFixed(1)}% churn)</span><br>
+                            <span style="margin-left: 1rem; opacity: 0.7;">(${(result.longTermChurn * 100).toFixed(1)}% churn)</span><br>
                             <br><strong>Avg Error:</strong> ${mape.toFixed(1)}%<br>
-                            <span style="margin-left: 1rem; color: var(--text-body);">(${qualityText})</span><br>
+                            <span style="margin-left: 1rem; opacity: 0.7;">(${qualityText})</span><br>
                             <strong>R²:</strong> ${r2.toFixed(4)}<br>
-                            <span style="margin-left: 1rem; color: var(--text-body);">[${result.method || 'Unknown'}]</span>${warning}
+                            <span style="margin-left: 1rem; opacity: 0.7;">[${result.method || 'Unknown'}]</span>${warning}
                         `;
                         
                         // Update charts
