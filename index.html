@@ -6,6 +6,9 @@
     <title>Sim Loyalty - Customer Retention & Growth Simulator</title>
     <meta name="description" content="Interactive customer retention and growth simulator using a three-segment model. Model churn, predict growth, and fit to real data. Free tool for SaaS, e-commerce, and mobile apps.">
     
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232563eb' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M22 12h-4l-3 9L9 3l-3 9H2'/></svg>">
+    
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://roenbaeck.github.io/sim-loyalty/">
@@ -560,7 +563,12 @@
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-            background: #fff;
+            background: var(--bg-panel);
+        }
+
+        .preset-select option {
+            background: var(--bg-panel);
+            color: var(--text-heading);
         }
 
         /* Main Visualization Area */
