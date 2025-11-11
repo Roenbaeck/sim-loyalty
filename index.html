@@ -870,6 +870,16 @@
                 </ul>
                 <p>Each segment follows <strong>exponential decay</strong>: <code>remaining(t) = initial × (1 - churn)^t</code></p>
 
+                <h3>🔍 Why Three Segments Work for Curve Fitting</h3>
+                <p>When you fit a model to your actual retention data, three segments provide the "sweet spot" for accuracy. Here's why:</p>
+                <ul>
+                    <li><strong>Short-term segment</strong> (high churn) → Strongly influences the <em>beginning</em> of the curve</li>
+                    <li><strong>Medium-term segment</strong> (moderate churn) → Strongly influences the <em>middle/bend</em> of the curve</li>
+                    <li><strong>Long-term segment</strong> (low churn) → Strongly influences the <em>end</em> of the curve</li>
+                </ul>
+                <p>Because each segment dominates a different time range, the optimization algorithm can distinguish between them and find unique solutions. This "separation" makes the three-segment model both <strong>flexible enough</strong> to capture real retention patterns and <strong>simple enough</strong> to fit reliably.</p>
+                <p><strong>💡 Practical insight:</strong> Adding a 4th or 5th segment rarely improves fit quality because three segments already capture the main shape (fast decay + medium decay + slow/plateau). More segments often lead to overfitting without meaningful gains.</p>
+
                 <h3>🤔 Why Model Instead of Using Raw Data?</h3>
                 <p>Great question! Here's why modeling adds value:</p>
                 <ul>
