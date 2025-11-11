@@ -25,7 +25,7 @@ Divide your customer base into segments based on longevity:
 - **Single Cohort Retention**: See how one cohort decays over time with segment breakdown
 - **Multi-Cohort Growth**: Model total customer base with monthly acquisition
 - **Stacked Area Charts**: Visual breakdown showing each segment's contribution to retention and growth
-- **Actual Data Overlay**: When curve fitting, your real data appears as light blue dots
+- **Actual Data Overlay**: When curve fitting, your real data appears as blue dots
 - **Live auto-updates**: Charts refresh automatically as you adjust parameters (300ms debounce)
 - **Interactive range sliders**: Fluid parameter adjustments with visual feedback
 - **Segment sum indicator**: Visual progress bar ensuring segments total 100%
@@ -34,7 +34,7 @@ Divide your customer base into segments based on longevity:
 - Paste your actual retention data (percentages by month)
 - **Advanced multi-method optimization**: Uses 4 different algorithms simultaneously (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing) to find the best fit
 - Automatically selects the optimal result from all methods
-- **See your actual data as light blue dots** overlaid on the model prediction
+- **See your actual data as blue dots** overlaid on the model prediction
 - Visually validate fit quality at a glance
 - Robust fitting across diverse retention patterns, from simple decay to complex multi-segment behaviors
 - Perfect for working with real cohort data from your analytics platform
@@ -61,7 +61,7 @@ Quick-start with realistic example scenarios:
 
 ### Key Metrics
 - **Cohort Half-Life (Median)**: When 50% of customers have churned
-- **Mean Customer Lifetime**: Average customer lifespan
+- **Average Customer Lifetime**: Average customer lifespan
 - **Growth Asymptote**: Steady-state customer base (if churn > 0)
 
 ## Getting Started
@@ -94,7 +94,7 @@ Simply open `index.html` in your web browser. No installation or build process r
 1. Click "🎯 Fit Model to Data" 
 2. Paste your retention percentages (one per month, starting at 100%)
 3. Click "Fit Parameters" to automatically calculate optimal segment parameters
-4. Your actual data appears as **light blue dots** on the retention chart
+4. Your actual data appears as **blue dots** on the retention chart
 5. Compare the fitted model (blue line) with your actual data visually
 
 ### Save Your Work
@@ -158,7 +158,7 @@ May struggle with:
 ### Validation
 After curve fitting:
 - **Avg Error (MAPE)**: <5% = excellent, 5-10% = good, >10% = review fit visually
-- **Visual inspection**: Compare light blue dots (actual) vs. fitted line - look for systematic patterns
+- **Visual inspection**: Compare blue dots (actual) vs. fitted line - look for systematic patterns
 - **R² metric**: Shows variance explained but can be misleading - use Avg Error instead
 
 ### 🧪 Stress Test Examples
@@ -200,7 +200,7 @@ Try curve fitting these patterns to explore limitations:
 - **Start with presets** to quickly understand the model and see realistic parameters
 - **Save multiple scenarios** to compare strategies ("Optimistic", "Conservative", "Current")
 - **Use real data**: The curve fitting works best with 6-12+ months of cohort data
-- **Visual validation**: Light blue dots show how well your model fits actual data
+- **Visual validation**: Blue dots show how well your model fits actual data
 - **Export for presentations**: Download charts as PNG for stakeholder meetings
 - **Share with colleagues**: Use shareable links to discuss assumptions as a team
 - **Experiment freely**: Test "what-if" scenarios - your saved sets are always available

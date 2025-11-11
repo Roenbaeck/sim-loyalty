@@ -1189,10 +1189,12 @@
                         <div class="kpi-item">
                             <div class="kpi-label" data-tooltip="Time when 50% of the cohort has churned (median customer lifetime)">Cohort Half-Life</div>
                             <div class="kpi-value" id="medianDisplay">--</div>
+                            <div id="segmentHalfLives" style="font-size: 0.75rem; color: var(--text-body); margin-top: 4px; display: none;"></div>
                         </div>
                         <div class="kpi-item">
-                            <div class="kpi-label" data-tooltip="Average customer lifespan, weighted by segment sizes">Mean Lifetime</div>
+                            <div class="kpi-label" data-tooltip="Average customer lifespan, weighted by segment sizes">Average Lifetime</div>
                             <div class="kpi-value" id="meanDisplay">--</div>
+                            <div id="segmentMeans" style="font-size: 0.75rem; color: var(--text-body); margin-top: 4px; display: none;"></div>
                         </div>
                     </div>
                     <div class="chart-body">
@@ -1478,9 +1480,9 @@
         }
 
         function parseRetentionData(input) {
-            // Parse input - supports comma-separated or line-separated values
+            // Parse input - supports space, comma, or line-separated values
             const values = input
-                .split(/[\n,]+/)
+                .split(/[\s,\n]+/)
                 .map(v => v.trim())
                 .filter(v => v.length > 0)
                 .map(v => parseFloat(v));
@@ -2287,6 +2289,46 @@
                 document.getElementById('meanDisplay').innerText = 'Infinite';
             }
             document.getElementById('medianDisplay').innerText = medianLifetimeStr;
+
+            // --- SEGMENT-SPECIFIC METRICS ---
+            // Display individual segment metrics if more than one segment is active
+            const segmentHalfLivesDiv = document.getElementById('segmentHalfLives');
+            const segmentMeansDiv = document.getElementById('segmentMeans');
+            const activeSegments = [
+                { name: 'Short-Term', percent: shortTermPercent, churn: shortTermChurn },
+                { name: 'Medium-Term', percent: mediumTermPercent, churn: mediumTermChurn },
+                { name: 'Long-Term', percent: longTermPercent, churn: longTermChurn }
+            ].filter(seg => seg.percent > 0.001); // Only include segments with >0.1%
+
+            if (activeSegments.length > 1) {
+                const halfLives = activeSegments.map(seg => {
+                    // Calculate half-life: t where remaining = initial/2
+                    // For exponential decay: 0.5 = (1-churn)^t, so t = ln(0.5)/ln(1-churn)
+                    if (seg.churn > 0 && seg.churn < 1) {
+                        return (Math.log(0.5) / Math.log(1 - seg.churn)).toFixed(1) + ' mo';
+                    } else if (seg.churn === 1) {
+                        return '0 mo';
+                    }
+                    return '∞';
+                });
+                
+                const means = activeSegments.map(seg => {
+                    // Mean lifetime = 1/churn (for exponential decay)
+                    if (seg.churn > 0) {
+                        return (1 / seg.churn).toFixed(1) + ' mo';
+                    }
+                    return '∞';
+                });
+                
+                segmentHalfLivesDiv.innerHTML = '(' + halfLives.join(', ') + ')';
+                segmentHalfLivesDiv.style.display = 'block';
+                
+                segmentMeansDiv.innerHTML = '(' + means.join(', ') + ')';
+                segmentMeansDiv.style.display = 'block';
+            } else {
+                segmentHalfLivesDiv.style.display = 'none';
+                segmentMeansDiv.style.display = 'none';
+            }
 
             // --- GROWTH CALCULATION (3-segment model) ---
              const growthData = timePoints.map(t => {
