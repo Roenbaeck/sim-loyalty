@@ -13,14 +13,14 @@
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://roenbaeck.github.io/sim-loyalty/">
     <meta property="og:title" content="Sim Loyalty - Customer Retention & Growth Simulator">
-    <meta property="og:description" content="Model customer retention and predict growth with a three-segment retention model. Fit to real data, export charts, and compare scenarios. Free interactive tool.">
+    <meta property="og:description" content="Model customer retention and predict growth with a three-segment retention model. Fit real data, save scenarios, and export charts. Free interactive tool.">
     <meta property="og:image" content="https://roenbaeck.github.io/sim-loyalty/preview.png">
     
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
     <meta property="twitter:url" content="https://roenbaeck.github.io/sim-loyalty/">
     <meta property="twitter:title" content="Sim Loyalty - Customer Retention & Growth Simulator">
-    <meta property="twitter:description" content="Model customer retention and predict growth with a three-segment retention model. Fit to real data, export charts, and compare scenarios.">
+    <meta property="twitter:description" content="Model customer retention and predict growth with a three-segment retention model. Fit real data, save scenarios, and export charts.">
     <meta property="twitter:image" content="https://roenbaeck.github.io/sim-loyalty/preview.png">
     
     <!-- Professional Font Stack -->
@@ -56,10 +56,33 @@
             --accent-warn: #f59e0b;
         }
 
+        [data-theme="dark"] .input-field-container input:disabled {
+            background: #0f172a;
+            color: #94a3b8;
+        }
+
+        [data-theme="dark"] .export-btn:hover,
+        [data-theme="dark"] .history-btn:hover:not(:disabled) {
+            background-color: #334155;
+            color: #f8fafc;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
         
         body {
@@ -150,6 +173,48 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+        }
+
+        .jump-link {
+            color: var(--primary);
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .jump-link:hover {
+            text-decoration: underline;
+        }
+
+        .header-buttons > .jump-link {
+            display: none;
+        }
+
+        .toast-region {
+            position: fixed;
+            right: 1rem;
+            bottom: 1rem;
+            z-index: 1200;
+            display: grid;
+            gap: 0.5rem;
+            max-width: min(360px, calc(100vw - 2rem));
+        }
+
+        .toast {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-good);
+            border-radius: 6px;
+            background: var(--bg-panel);
+            color: var(--text-heading);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
+            font-size: 0.875rem;
+        }
+
+        .results-toolbar {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto 0.75rem;
         }
 
         /* Modal Styles */
@@ -469,6 +534,29 @@
             display: block;
         }
 
+        .normalize-btn {
+            display: none;
+            width: 100%;
+            margin-top: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--accent-warn);
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-heading);
+            font: inherit;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .normalize-btn.visible {
+            display: block;
+        }
+
+        .normalize-btn:hover {
+            background: rgba(245, 158, 11, 0.12);
+        }
+
         .range-slider {
             width: 100%;
             height: 6px;
@@ -513,6 +601,11 @@
             transform: scale(1.15);
         }
 
+        .range-slider:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
+        }
+
         .range-slider::-webkit-slider-runnable-track {
             height: 6px;
             border-radius: 3px;
@@ -524,21 +617,32 @@
             background: #e2e8f0;
         }
 
-        .update-btn {
-            width: 100%;
-            padding: 0.75rem;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            margin-top: auto;
+        .history-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
         }
 
-        .update-btn:hover {
-            background-color: var(--primary-hover);
+        .history-btn {
+            padding: 0.625rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: var(--bg-main);
+            color: var(--text-heading);
+            font: inherit;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .history-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .history-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.45;
         }
 
         .export-buttons {
@@ -706,7 +810,6 @@
                 grid-template-columns: 1fr 1fr;
                 gap: 2rem;
             }
-            .update-btn { grid-column: 1 / -1; }
             body { height: auto; }
             .visualization-area { overflow-y: visible; }
         }
@@ -724,6 +827,8 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            width: 100%;
+            border: none;
             cursor: pointer;
             padding: 0.875rem 1rem;
             background: var(--primary);
@@ -731,6 +836,8 @@
             margin-bottom: 1rem;
             transition: all 0.2s;
             box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+            font-family: inherit;
+            text-align: left;
         }
 
         .fit-toggle:hover {
@@ -849,6 +956,10 @@
         @media (max-width: 768px) {
             .grid-container { grid-template-columns: 1fr; }
             .controls-panel { grid-template-columns: 1fr; gap: 0; }
+            .app-header { padding: 0.75rem 1rem; }
+            .header-buttons > .jump-link { display: inline; }
+            .results-toolbar { display: block; }
+            .toast-region { bottom: 0.75rem; }
         }
     </style>
 </head>
@@ -860,6 +971,7 @@
             Sim Loyalty
         </div>
         <div class="header-buttons">
+            <a class="jump-link" href="#results">Results</a>
             <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle dark mode" title="Toggle dark mode">
                 <span id="themeIcon">🌙</span>
             </button>
@@ -927,8 +1039,9 @@
                 <ul>
                     <li><strong>Range Sliders:</strong> Each segment parameter has a slider for quick, visual adjustments</li>
                     <li><strong>Live Auto-Updates:</strong> Charts update automatically 300ms after you stop adjusting parameters (no "Run Simulation" button needed)</li>
-                    <li><strong>Segment Sum Indicator:</strong> A visual progress bar shows if your segments sum to 100% (green), under 100% (orange), or over 100% (red)</li>
-                    <li><strong>Auto-Save via URL:</strong> Your parameters are automatically saved in the browser URL as you work - refreshing the page restores your exact state!</li>
+                    <li><strong>Segment Sum Indicator:</strong> A visual progress bar shows if your segments sum to 100% and offers proportional normalization when needed</li>
+                    <li><strong>Undo & Reset:</strong> Restore the previous valid scenario or return to the default model</li>
+                    <li><strong>Auto-Save via URL:</strong> Valid model parameters are automatically saved in the browser URL as you work</li>
                     <li><strong>Stacked Area Charts:</strong> See exactly how much each segment contributes to retention and growth over time</li>
                 </ul>
                 <p><strong>Pro Tip:</strong> The URL autosave means you can bookmark interesting scenarios or share your exact current state just by copying the URL!</p>
@@ -939,7 +1052,7 @@
                     <li>Click <strong>"🎯 Fit Model to Data"</strong></li>
                     <li>Paste retention percentages (one per month, starting at 100%)</li>
                     <li>Click <strong>Fit Parameters</strong> to calculate optimal segment parameters</li>
-                    <li>Your actual data appears as <strong>light blue dots</strong> on the retention chart</li>
+                    <li>Your actual data appears as <strong>blue dots</strong> on the retention chart</li>
                     <li>The blue line shows the fitted model - compare visually!</li>
                 </ul>
                 <p><strong>🔬 Advanced Multi-Method Optimization:</strong> The curve fitting runs and compares 4 different optimization algorithms (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing), then selects the best result. This ensures robust fitting across diverse retention patterns, from simple exponential decay to complex multi-segment behaviors.</p>
@@ -950,11 +1063,11 @@
                     <li><strong>Load Presets:</strong> Use built-in examples (SaaS, E-commerce, Mobile App, Enterprise)</li>
                     <li><strong>Export Charts:</strong> Download retention or growth charts as PNG images</li>
                     <li><strong>Export Data:</strong> Download simulation results as CSV for Excel/Sheets</li>
-                    <li><strong>Share Links:</strong> Click 🔗 Copy Link to share your exact parameters with colleagues</li>
+                    <li><strong>Model Links:</strong> Copy a link containing the current model parameters; fitted observations remain in saved browser scenarios only</li>
                 </ul>
 
                 <h3>📈 Understanding the Charts</h3>
-                <p><strong>Single Cohort Retention:</strong> Shows how one group of customers decays over time. The stacked areas show the contribution of each segment (short-term, medium-term, long-term). Light blue dots (if present) show your actual data vs. the fitted model (blue line).</p>
+                <p><strong>Single Cohort Retention:</strong> Shows how one group of customers decays over time. The stacked areas show the contribution of each segment (short-term, medium-term, long-term). Blue dots (if present) show your actual data vs. the fitted model (blue line).</p>
                 <p><strong>Multi-Cohort Growth:</strong> Shows your total customer base when adding new cohorts monthly. The stacked areas reveal how much each segment contributes to total growth. The dashed line shows the theoretical ceiling (asymptote).</p>
 
                 <h3>🎯 Understanding Your Growth Ceiling (Asymptote)</h3>
@@ -1008,7 +1121,7 @@
                     <li>❌ Network effects (retention improving as product matures)</li>
                     <li>❌ Seasonal or time-varying churn rates</li>
                 </ul>
-                <p><strong>Check the Avg Error %</strong> when fitting. If &gt;10%, visually inspect the light blue dots - look for systematic patterns that the model misses.</p>
+                <p><strong>Check the Avg Error %</strong> when fitting. If &gt;10%, visually inspect the blue dots - look for systematic patterns that the model misses.</p>
 
                 <h3>📌 Note on Acquisition Growth</h3>
                 <p>This model assumes <strong>fixed monthly acquisition</strong> to isolate retention dynamics and calculate steady-state (asymptote). This assumption is realistic for:</p>
@@ -1028,7 +1141,7 @@
                 <ul>
                     <li>Try the built-in presets to learn the model quickly</li>
                     <li>Save multiple scenarios to compare different strategies</li>
-                    <li>Use real data fitting for accuracy - the light blue dots show fit quality</li>
+                    <li>Use real data fitting for accuracy - the blue dots show fit quality</li>
                     <li>Watch the Avg Error % - if it's high, inspect the dots visually</li>
                     <li>Export charts for presentations and reports</li>
                     <li>Share links with teammates to discuss assumptions</li>
@@ -1063,7 +1176,7 @@
     <!-- Main App -->
     <div class="app-container">
         <!-- Left Sidebar Controls -->
-        <aside class="controls-panel">
+        <aside class="controls-panel" id="controls">
             <div class="control-group">
                 <h3 class="panel-title">Cohort Dynamics</h3>
                 <div class="fit-help" style="margin-bottom: 1rem;">
@@ -1094,57 +1207,57 @@
                 </div>
                 
                 <div class="input-wrapper">
-                    <label for="shortTermPercent" data-tooltip="Percentage of new customers who are exploratory users with high churn">Short-term Segment Size</label>
+                    <label id="shortTermPercentLabel" for="shortTermPercent" data-tooltip="Percentage of new customers who are exploratory users with high churn">Short-term Segment Size</label>
                     <div class="input-field-container">
                         <input type="number" id="shortTermPercent" value="20" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
-                    <input type="range" id="shortTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="20">
+                    <input type="range" id="shortTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="20" aria-labelledby="shortTermPercentLabel">
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="shortTermChurnRate" data-tooltip="Monthly churn rate for short-term customers (typically 70-95%)">Short-term Churn Rate</label>
+                    <label id="shortTermChurnRateLabel" for="shortTermChurnRate" data-tooltip="Monthly churn rate for short-term customers (typically 70-95%)">Short-term Churn Rate</label>
                     <div class="input-field-container">
                         <input type="number" id="shortTermChurnRate" value="90" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
-                    <input type="range" id="shortTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="90">
+                    <input type="range" id="shortTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="90" aria-labelledby="shortTermChurnRateLabel">
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="mediumTermPercent" data-tooltip="Percentage of new customers who are regular users with moderate retention">Medium-term Segment Size</label>
+                    <label id="mediumTermPercentLabel" for="mediumTermPercent" data-tooltip="Percentage of new customers who are regular users with moderate retention">Medium-term Segment Size</label>
                     <div class="input-field-container">
                         <input type="number" id="mediumTermPercent" value="60" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
-                    <input type="range" id="mediumTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="60">
+                    <input type="range" id="mediumTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="60" aria-labelledby="mediumTermPercentLabel">
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="mediumTermChurnRate" data-tooltip="Monthly churn rate for medium-term customers (typically 5-15%)">Medium-term Churn Rate</label>
+                    <label id="mediumTermChurnRateLabel" for="mediumTermChurnRate" data-tooltip="Monthly churn rate for medium-term customers (typically 5-15%)">Medium-term Churn Rate</label>
                     <div class="input-field-container">
                         <input type="number" id="mediumTermChurnRate" value="10" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
-                    <input type="range" id="mediumTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="10">
+                    <input type="range" id="mediumTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="10" aria-labelledby="mediumTermChurnRateLabel">
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="longTermPercent" data-tooltip="Percentage of new customers who become highly engaged with low churn">Long-term Segment Size</label>
+                    <label id="longTermPercentLabel" for="longTermPercent" data-tooltip="Percentage of new customers who become highly engaged with low churn">Long-term Segment Size</label>
                     <div class="input-field-container">
                         <input type="number" id="longTermPercent" value="20" min="0" max="100" step="0.1">
                         <span class="input-unit">%</span>
                     </div>
-                    <input type="range" id="longTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="20">
+                    <input type="range" id="longTermPercentSlider" class="range-slider" min="0" max="100" step="0.1" value="20" aria-labelledby="longTermPercentLabel">
                 </div>
 
                 <div class="input-wrapper">
-                    <label for="longTermChurnRate" data-tooltip="Monthly churn rate for long-term loyal customers (typically 0.5-3%)">Long-term Churn Rate</label>
+                    <label id="longTermChurnRateLabel" for="longTermChurnRate" data-tooltip="Monthly churn rate for long-term loyal customers (typically 0.5-3%)">Long-term Churn Rate</label>
                     <div class="input-field-container">
                         <input type="number" id="longTermChurnRate" value="1" min="0" max="100" step="0.1">
                         <span class="input-unit">% / mo</span>
                     </div>
-                    <input type="range" id="longTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="1">
+                    <input type="range" id="longTermChurnRateSlider" class="range-slider" min="0" max="100" step="0.1" value="1" aria-labelledby="longTermChurnRateLabel">
                 </div>
 
                 <!-- Segment Sum Indicator -->
@@ -1156,15 +1269,16 @@
                     </div>
                 </div>
                 <div class="validation-message" id="validationMessage" role="alert" aria-live="polite"></div>
+                <button type="button" class="normalize-btn" id="normalizeSegmentsButton" onclick="normalizeSegments()">Normalize segments to 100%</button>
 
                 <!-- Curve Fitting Section -->
                 <div class="fit-section">
-                    <div class="fit-toggle" onclick="toggleFitPanel()">
+                    <button type="button" class="fit-toggle" onclick="toggleFitPanel()" aria-expanded="false" aria-controls="fitContent">
                         <span class="fit-toggle-title">🎯 Fit Model to Data</span>
                         <span class="fit-toggle-icon" id="fitToggleIcon">▼</span>
-                    </div>
+                    </button>
                     <div class="fit-content" id="fitContent">
-                        <label style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">
+                        <label for="retentionData" style="display: block; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.5rem;">
                             Retention Data (% remaining)
                         </label>
                         <textarea 
@@ -1172,7 +1286,7 @@
                             class="fit-textarea" 
                             placeholder="Enter retention percentages, one per line or comma-separated:&#10;100&#10;82&#10;73&#10;65&#10;58&#10;52&#10;..."></textarea>
                         <div class="fit-help">
-                            Paste your cohort retention data starting at 100%. Each value represents the percentage of customers remaining after each period. Your actual data will appear as light blue points on the retention chart.
+                            Paste your cohort retention data starting at 100%. Each value represents the percentage of customers remaining after each period. Your actual data will appear as blue points on the retention chart.
                         </div>
                         <button class="fit-btn" onclick="fitModelToData()">Fit Parameters</button>
                         <div class="fit-result" id="fitResult"></div>
@@ -1180,7 +1294,10 @@
                 </div>
             </div>
 
-            <button class="update-btn" onclick="updateCharts()">Refresh Charts</button>
+            <div class="history-actions" aria-label="Scenario history">
+                <button type="button" class="history-btn" id="undoButton" onclick="undoLastChange()" disabled>Undo</button>
+                <button type="button" class="history-btn" onclick="resetToDefaults()">Reset</button>
+            </div>
 
             <!-- Presets & Saved Sets Section -->
             <div class="control-group" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
@@ -1205,7 +1322,7 @@
                     <label for="saveSetName">Save Current Parameters As</label>
                     <div style="display: flex; gap: 0.5rem;">
                         <input type="text" id="saveSetName" placeholder="My Scenario" class="input-field-container" style="flex: 1; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; background: var(--bg-panel); color: var(--text-heading);">
-                        <button class="export-btn" onclick="saveNamedSet()" style="width: auto; padding: 0.5rem 1rem;">💾</button>
+                        <button class="export-btn" onclick="saveNamedSet()" style="width: auto; padding: 0.5rem 1rem;" aria-label="Save current scenario" title="Save current scenario">💾</button>
                     </div>
                 </div>
 
@@ -1228,8 +1345,8 @@
                     <button class="export-btn" onclick="exportToCSV()" title="Export simulation data to CSV">
                         Export CSV
                     </button>
-                    <button class="export-btn" onclick="copyShareableLink()" title="Copy shareable link with current parameters">
-                        Copy Link
+                    <button class="export-btn" onclick="copyShareableLink()" title="Copy model parameters; fitted observations are not included">
+                        Copy Model Link
                     </button>
                 </div>
             </div>
@@ -1244,7 +1361,8 @@
         </aside>
 
         <!-- Main Visualization Area -->
-        <main class="visualization-area">
+        <main class="visualization-area" id="results">
+            <div class="results-toolbar"><a class="jump-link" href="#controls">Back to inputs</a></div>
             <div class="grid-container">
                 <!-- Chart 1: Retention -->
                 <div class="chart-card">
@@ -1264,7 +1382,8 @@
                         </div>
                     </div>
                     <div class="chart-body">
-                        <canvas id="retentionChart"></canvas>
+                        <canvas id="retentionChart" role="img" aria-label="Single cohort retention chart" aria-describedby="retentionChartSummary">Single cohort retention chart.</canvas>
+                        <p class="sr-only" id="retentionChartSummary" aria-live="polite"></p>
                     </div>
                 </div>
 
@@ -1281,17 +1400,34 @@
                         </div>
                     </div>
                     <div class="chart-body">
-                        <canvas id="growthChart"></canvas>
+                        <canvas id="growthChart" role="img" aria-label="Total customer base growth chart" aria-describedby="growthChartSummary">Total customer base growth chart.</canvas>
+                        <p class="sr-only" id="growthChartSummary" aria-live="polite"></p>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+    <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 
     <script>
         // --- Global State ---
         let actualRetentionData = null; // Store actual data points from curve fitting
         let pendingStateWarning = '';
+        let lastAppliedParameters = null;
+        let previousParameters = null;
+        let suppressHistory = false;
+
+        const DEFAULT_PARAMETERS = {
+            cohortSize: '1000',
+            timePeriods: '36',
+            shortTermPercent: '20',
+            shortTermChurnRate: '90',
+            mediumTermPercent: '60',
+            mediumTermChurnRate: '10',
+            longTermPercent: '20',
+            longTermChurnRate: '1',
+            actualData: null
+        };
 
         const PARAMETER_RULES = {
             cohortSize: { min: 1, max: 1000000, integer: true, label: 'Monthly Customer Acquisition' },
@@ -1326,6 +1462,15 @@
             validationMessage.classList.toggle('visible', Boolean(message));
         }
 
+        function showToast(message) {
+            const region = document.getElementById('toastRegion');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            region.replaceChildren(toast);
+            setTimeout(() => toast.remove(), 3500);
+        }
+
         function getValidatedParameters(showError = true) {
             const rawValues = {};
             Object.keys(PARAMETER_RULES).forEach(name => {
@@ -1354,6 +1499,54 @@
             };
         }
 
+        function cloneParameters(params) {
+            return {
+                ...params,
+                actualData: Array.isArray(params.actualData) ? [...params.actualData] : null
+            };
+        }
+
+        function parameterStatesMatch(first, second) {
+            return JSON.stringify(first) === JSON.stringify(second);
+        }
+
+        function updateUndoButton() {
+            const undoButton = document.getElementById('undoButton');
+            if (undoButton) undoButton.disabled = !previousParameters;
+        }
+
+        function recordAppliedParameters() {
+            const currentParameters = cloneParameters(getAllParameters());
+            if (!suppressHistory && lastAppliedParameters && !parameterStatesMatch(currentParameters, lastAppliedParameters)) {
+                previousParameters = cloneParameters(lastAppliedParameters);
+            }
+            lastAppliedParameters = currentParameters;
+            updateUndoButton();
+        }
+
+        function applyParameterState(params) {
+            if (!setAllParameters(params)) return false;
+            updateChurnFieldStates();
+            updateSegmentSum();
+            updateCharts();
+            updateURLState();
+            return true;
+        }
+
+        function undoLastChange() {
+            if (!previousParameters) return;
+            const targetParameters = cloneParameters(previousParameters);
+            previousParameters = null;
+            suppressHistory = true;
+            applyParameterState(targetParameters);
+            suppressHistory = false;
+            updateUndoButton();
+        }
+
+        function resetToDefaults() {
+            applyParameterState(DEFAULT_PARAMETERS);
+        }
+
         // --- Chart Global Configuration for a more professional look ---
         Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
         Chart.defaults.color = '#64748b';
@@ -1369,15 +1562,18 @@
                 totalLine: isDark ? '#f1f5f9' : '#1e293b',
                 actualData: isDark ? '#bbddff' : '#000088',
                 asymptoteLine: isDark ? '#f59e0b' : '#f59e0b',
-                // Segment colors - blue-gray gradient for dark mode
+                // Distinct segment colors for both themes
                 shortTerm: {
-                    background: isDark ? 'rgba(41, 85, 165, 0.85)' : 'rgba(236, 72, 153, 0.7)'
+                    background: isDark ? 'rgba(244, 114, 182, 0.78)' : 'rgba(236, 72, 153, 0.7)',
+                    border: isDark ? '#f472b6' : '#ec4899'
                 },
                 mediumTerm: {
-                    background: isDark ? 'rgba(70, 116, 199, 0.85)' : 'rgba(139, 92, 246, 0.7)'
+                    background: isDark ? 'rgba(192, 132, 252, 0.78)' : 'rgba(139, 92, 246, 0.7)',
+                    border: isDark ? '#c084fc' : '#8b5cf6'
                 },
                 longTerm: {
-                    background: isDark ? 'rgba(118, 163, 244, 0.85)' : 'rgba(59, 130, 246, 0.7)'
+                    background: isDark ? 'rgba(96, 165, 250, 0.78)' : 'rgba(59, 130, 246, 0.7)',
+                    border: isDark ? '#60a5fa' : '#3b82f6'
                 }
             };
         }
@@ -1430,13 +1626,16 @@
             segments.forEach(segment => {
                 const percentValue = parseFloat(document.getElementById(segment.percentId).value);
                 const churnField = document.getElementById(segment.churnId);
+                const churnSlider = document.getElementById(segment.churnId + 'Slider');
                 const churnWrapper = churnField.closest('.input-wrapper');
                 
                 if (percentValue === 0) {
                     churnField.disabled = true;
+                    churnSlider.disabled = true;
                     churnWrapper.classList.add('disabled');
                 } else {
                     churnField.disabled = false;
+                    churnSlider.disabled = false;
                     churnWrapper.classList.remove('disabled');
                 }
             });
@@ -1586,6 +1785,7 @@
             
             const bar = document.getElementById('segmentSumBar');
             const text = document.getElementById('segmentSumText');
+            const normalizeButton = document.getElementById('normalizeSegmentsButton');
             
             const percentage = Math.min(total, 100);
             bar.style.width = percentage + '%';
@@ -1600,14 +1800,46 @@
             } else {
                 bar.classList.add('invalid');
             }
+            normalizeButton.classList.toggle('visible', total > 0 && Math.abs(total - 100) >= 0.01);
+        }
+
+        function normalizeSegments() {
+            const values = [
+                Number(document.getElementById('shortTermPercent').value),
+                Number(document.getElementById('mediumTermPercent').value),
+                Number(document.getElementById('longTermPercent').value)
+            ];
+            const total = values.reduce((sum, value) => sum + value, 0);
+            if (!Number.isFinite(total) || total <= 0) return;
+
+            const normalized = [
+                Number((values[0] * 100 / total).toFixed(1)),
+                Number((values[1] * 100 / total).toFixed(1))
+            ];
+            normalized.push(Number((100 - normalized[0] - normalized[1]).toFixed(1)));
+
+            ['shortTermPercent', 'mediumTermPercent', 'longTermPercent'].forEach((id, index) => {
+                const input = document.getElementById(id);
+                const slider = document.getElementById(id + 'Slider');
+                input.value = normalized[index].toFixed(1);
+                slider.value = input.value;
+                updateSliderBackground(slider);
+            });
+
+            updateChurnFieldStates();
+            updateSegmentSum();
+            updateCharts();
+            updateURLState();
         }
 
         // --- Curve Fitting Functions ---
         function toggleFitPanel() {
             const content = document.getElementById('fitContent');
             const icon = document.getElementById('fitToggleIcon');
+            const toggle = document.querySelector('.fit-toggle');
             content.classList.toggle('visible');
             icon.classList.toggle('expanded');
+            toggle.setAttribute('aria-expanded', content.classList.contains('visible').toString());
         }
 
         function parseRetentionData(input) {
@@ -1719,12 +1951,12 @@
                             qualityIcon = '⚠️';
                             qualityText = 'Poor fit';
                             qualityClass = 'poor';
-                            warning = '<br><br><strong>⚠️ Visual Fit Issue Detected:</strong><br>The model shows significant deviations from your data (avg error: ' + mape.toFixed(1) + '%). Possible reasons:<br>• Non-exponential decay pattern (S-curves, sudden changes)<br>• Time-varying churn (seasonal effects)<br>• Customer reactivation patterns<br><br><strong>Check the light blue dots:</strong> Look for systematic patterns in the errors.';
+                            warning = '<br><br><strong>⚠️ Visual Fit Issue Detected:</strong><br>The model shows significant deviations from your data (avg error: ' + mape.toFixed(1) + '%). Possible reasons:<br>• Non-exponential decay pattern (S-curves, sudden changes)<br>• Time-varying churn (seasonal effects)<br>• Customer reactivation patterns<br><br><strong>Check the blue dots:</strong> Look for systematic patterns in the errors.';
                         } else if (mape > 5) {
                             qualityIcon = '⚡';
                             qualityText = 'Good fit';
                             qualityClass = 'good';
-                            warning = '<br><br><em>Note: Minor deviations detected (avg error: ' + mape.toFixed(1) + '%). Visually inspect the light blue dots for any patterns.</em>';
+                            warning = '<br><br><em>Note: Minor deviations detected (avg error: ' + mape.toFixed(1) + '%). Visually inspect the blue dots for any patterns.</em>';
                         }
                         
                         // Show success message with quality assessment
@@ -2352,6 +2584,8 @@
             const parameters = getValidatedParameters();
             if (!parameters) return;
 
+            recordAppliedParameters();
+
             const {
                 shortTermPercent, shortTermChurn,
                 mediumTermPercent, mediumTermChurn,
@@ -2454,10 +2688,14 @@
                     return '∞';
                 });
                 
-                segmentHalfLivesDiv.innerHTML = '(' + halfLives.join(', ') + ')';
+                segmentHalfLivesDiv.textContent = activeSegments
+                    .map((segment, index) => `${segment.name.replace('-Term', '')} ${halfLives[index]}`)
+                    .join(' · ');
                 segmentHalfLivesDiv.style.display = 'block';
                 
-                segmentMeansDiv.innerHTML = '(' + means.join(', ') + ')';
+                segmentMeansDiv.textContent = activeSegments
+                    .map((segment, index) => `${segment.name.replace('-Term', '')} ${means[index]}`)
+                    .join(' · ');
                 segmentMeansDiv.style.display = 'block';
             } else {
                 segmentHalfLivesDiv.style.display = 'none';
@@ -2536,6 +2774,13 @@
                 asymptoteStr = `Linear: ${growingSegments.join(' + ')} × (t + 1) + ${Math.round(steadyState).toLocaleString()}`;
             }
             document.getElementById('asymptoteDisplay').innerText = asymptoteStr;
+            document.getElementById('retentionChartSummary').textContent =
+                `A cohort of ${cohortSize.toLocaleString()} customers over ${timePeriods} months. ` +
+                `Cohort half-life is ${medianLifetimeStr}; average lifetime is ${document.getElementById('meanDisplay').innerText}.` +
+                (actualRetentionData ? ` Includes ${actualRetentionData.length} actual retention observations.` : '');
+            document.getElementById('growthChartSummary').textContent =
+                `The modeled customer base reaches ${Math.round(growthData[timePeriods]).toLocaleString()} after ${timePeriods} months. ` +
+                `Growth ceiling: ${asymptoteStr}.`;
 
 
             // --- UPDATE CHARTS ---
@@ -2924,23 +3169,30 @@
         };
 
         // --- Export & Share Functions ---
-        
-        function downloadRetentionChart() {
-            const canvas = document.getElementById('retentionChart');
-            const url = canvas.toDataURL('image/png');
+
+        function downloadChart(canvasId, filename) {
+            const sourceCanvas = document.getElementById(canvasId);
+            const exportCanvas = document.createElement('canvas');
+            exportCanvas.width = sourceCanvas.width;
+            exportCanvas.height = sourceCanvas.height;
+            const context = exportCanvas.getContext('2d');
+            const backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-panel').trim();
+            context.fillStyle = backgroundColor;
+            context.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            context.drawImage(sourceCanvas, 0, 0);
+
             const link = document.createElement('a');
-            link.download = 'retention-chart.png';
-            link.href = url;
+            link.download = filename;
+            link.href = exportCanvas.toDataURL('image/png');
             link.click();
         }
 
+        function downloadRetentionChart() {
+            downloadChart('retentionChart', 'retention-chart.png');
+        }
+
         function downloadGrowthChart() {
-            const canvas = document.getElementById('growthChart');
-            const url = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.download = 'growth-chart.png';
-            link.href = url;
-            link.click();
+            downloadChart('growthChart', 'growth-chart.png');
         }
 
         function getAllParameters() {
@@ -2987,10 +3239,14 @@
             // Update segment sum display
             updateSegmentSum();
             
-            // Restore actual retention data if it was saved
-            if (params.actualData) {
-                actualRetentionData = params.actualData;
-            }
+            // Restore fitted observations only when the loaded state owns them.
+            actualRetentionData = Array.isArray(params.actualData) ? params.actualData : null;
+            document.getElementById('retentionData').value = actualRetentionData
+                ? actualRetentionData.map(value => (value * 100).toFixed(1)).join('\n')
+                : '';
+            const fitResult = document.getElementById('fitResult');
+            fitResult.className = 'fit-result';
+            fitResult.textContent = '';
             return true;
         }
 
@@ -3002,7 +3258,7 @@
             const shareUrl = window.location.origin + window.location.pathname + '?' + urlParams.toString();
             
             navigator.clipboard.writeText(shareUrl).then(() => {
-                alert('✅ Link copied to clipboard! Share this URL to let others view your simulation.');
+                showToast('Model link copied. Fitted observations are not included.');
             }).catch(() => {
                 // Fallback for older browsers
                 prompt('Copy this link:', shareUrl);
@@ -3042,7 +3298,7 @@
             if (!getValidatedParameters()) return;
             const name = document.getElementById('saveSetName').value.trim();
             if (!name) {
-                alert('⚠️ Please enter a name for this parameter set.');
+                showToast('Enter a name before saving this scenario.');
                 return;
             }
             
@@ -3055,7 +3311,7 @@
             localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
             document.getElementById('saveSetName').value = '';
             updateSavedSetsList();
-            alert(`✅ "${name}" saved successfully!`);
+            showToast(`"${name}" saved.`);
         }
 
         function updateSavedSetsList() {
@@ -3085,7 +3341,7 @@
             const names = Object.keys(savedSets);
             
             if (names.length === 0) {
-                alert('ℹ️ No saved sets to manage.');
+                showToast('There are no saved scenarios yet.');
                 return;
             }
             
@@ -3101,7 +3357,7 @@
                 if (confirm(`⚠️ Delete ALL ${names.length} saved sets?\n\nThis cannot be undone!`)) {
                     localStorage.removeItem('simLoyaltySavedSets');
                     updateSavedSetsList();
-                    alert(`✅ All saved sets deleted.`);
+                    showToast('All saved scenarios deleted.');
                 }
                 return;
             }
@@ -3112,10 +3368,10 @@
                     delete savedSets[action];
                     localStorage.setItem('simLoyaltySavedSets', JSON.stringify(savedSets));
                     updateSavedSetsList();
-                    alert(`✅ "${action}" deleted.`);
+                    showToast(`"${action}" deleted.`);
                 }
             } else {
-                alert('⚠️ Set not found.');
+                showToast('Scenario not found.');
             }
         }
 

@@ -28,7 +28,8 @@ Divide your customer base into segments based on longevity:
 - **Actual Data Overlay**: When curve fitting, your real data appears as blue dots
 - **Live auto-updates**: Charts refresh automatically as you adjust parameters (300ms debounce)
 - **Interactive range sliders**: Fluid parameter adjustments with visual feedback
-- **Segment sum indicator**: Visual progress bar ensuring segments total 100%
+- **Segment sum indicator**: Visual progress bar plus proportional normalization to exactly 100%
+- **Undo and reset**: Restore the previous valid scenario or return to defaults
 
 ### Curve Fitting with Visual Validation
 - Paste your actual retention data (percentages by month)
@@ -55,8 +56,8 @@ Quick-start with realistic example scenarios:
 ### Export & Share
 - **Download charts as PNG**: High-quality images for presentations
 - **Export to CSV**: Full simulation data for Excel/Sheets analysis
-- **Shareable links**: Copy URL with parameters to share with colleagues
-- **Auto-save via URL**: Parameters automatically saved in URL - refresh-proof!
+- **Model links**: Copy model parameters to share with colleagues; fitted observations are excluded
+- **Auto-save via URL**: Valid model parameters are automatically saved in the URL
 - All exports reflect current simulation state
 
 ### Key Metrics
@@ -84,11 +85,13 @@ Simply open `index.html` in your web browser. No installation or build process r
 2. **Define Retention Segments**: 
    - Set the percentage split (must total exactly 100%)
    - Watch the segment sum indicator (green = valid, orange/red = invalid)
+   - Use **Normalize segments to 100%** to rebalance all three sizes proportionally
    - Use range sliders for quick adjustments
    - Set monthly churn rate for each segment
 3. **Set Simulation Duration**: Choose 1 to 600 months
 4. **Live Updates**: Charts update automatically as you adjust valid parameters - no button needed!
-5. **Auto-Save**: Valid parameters are saved in the URL - refresh won't lose your work!
+5. **Undo or Reset**: Restore the previous valid scenario or return to defaults
+6. **Auto-Save**: Valid model parameters are saved in the URL
 
 ### Advanced: Fit to Real Data
 
@@ -197,7 +200,7 @@ Try fitting these patterns to see model performance:
 - **Use real data**: The curve fitting works best with 6-12+ months of cohort data
 - **Visual validation**: Blue dots show how well your model fits actual data
 - **Export for presentations**: Download charts as PNG for stakeholder meetings
-- **Share with colleagues**: Use shareable links to discuss assumptions as a team
+- **Share with colleagues**: Use model links to discuss assumptions as a team; save locally when fitted observations must be retained
 - **Experiment freely**: Test "what-if" scenarios - your saved sets are always available
 
 ## License
