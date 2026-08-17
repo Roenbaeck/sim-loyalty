@@ -32,7 +32,7 @@ Divide your customer base into segments based on longevity:
 
 ### Curve Fitting with Visual Validation
 - Paste your actual retention data (percentages by month)
-- **Advanced multi-method optimization**: Uses 4 different algorithms simultaneously (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing) to find the best fit
+- **Advanced multi-method optimization**: Runs and compares 4 different algorithms (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing) to find the best fit
 - Automatically selects the optimal result from all methods
 - **See your actual data as blue dots** overlaid on the model prediction
 - Visually validate fit quality at a glance
@@ -62,7 +62,7 @@ Quick-start with realistic example scenarios:
 ### Key Metrics
 - **Cohort Half-Life (Median)**: When 50% of customers have churned
 - **Average Customer Lifetime**: Average customer lifespan
-- **Growth Asymptote**: Steady-state customer base (if churn > 0)
+- **Growth Asymptote**: Steady-state customer base when every non-empty segment has positive churn
 
 ## Getting Started
 
@@ -80,14 +80,15 @@ Simply open `index.html` in your web browser. No installation or build process r
 
 ### Manual Setup
 
-1. **Set Monthly Acquisition**: How many new customers you acquire each month
+1. **Set Monthly Acquisition**: How many new customers you acquire each month (1 to 1,000,000)
 2. **Define Retention Segments**: 
-   - Set the percentage split (must sum to 100%)
+   - Set the percentage split (must total exactly 100%)
    - Watch the segment sum indicator (green = valid, orange/red = invalid)
    - Use range sliders for quick adjustments
    - Set monthly churn rate for each segment
-3. **Live Updates**: Charts update automatically as you adjust parameters - no button needed!
-4. **Auto-Save**: Your parameters are saved in the URL - refresh won't lose your work!
+3. **Set Simulation Duration**: Choose 1 to 600 months
+4. **Live Updates**: Charts update automatically as you adjust valid parameters - no button needed!
+5. **Auto-Save**: Valid parameters are saved in the URL - refresh won't lose your work!
 
 ### Advanced: Fit to Real Data
 
@@ -188,12 +189,6 @@ Try fitting these patterns to see model performance:
 100, 80, 70, 65, 63, 62, 61, 60, 60, 60, 60, 60
 ```
 *Model handles this well with long-term segment at 0% churn*
-
-### Stress Test Examples
-Try curve fitting these patterns to explore limitations:
-- **Plateau**: `100, 80, 70, 65, 63, 62, 61, 60, 60, 60` (poor fit expected)
-- **S-Curve**: `100, 95, 90, 85, 75, 60, 40, 25, 18, 15` (challenging)
-- **Typical SaaS**: `100, 82, 73, 65, 58, 52, 47, 43, 39` (good fit expected)
 
 ## Tips
 

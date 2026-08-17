@@ -28,8 +28,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" integrity="sha384-jb8JQMbMoBUzgWatfe6COACi2ljcDdZQ2OxczGA3bGNeWe+6DChMTBJemed7ZnvJ" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.1.0/dist/chartjs-plugin-annotation.min.js" integrity="sha384-3N9GHhCtN3CQef6tNfqgZlv7sQLYIkcChN+uaTZ7xVdzKYp/SjBNPxa92+hM7EAY" crossorigin="anonymous"></script>
     
     <style>
         :root {
@@ -70,6 +70,10 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
+        }
+
+        body.modal-open {
+            overflow: hidden;
         }
 
         /* App Header */
@@ -448,6 +452,21 @@
             top: 50%;
             transform: translateY(-50%);
             z-index: 2;
+        }
+
+        .validation-message {
+            display: none;
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            background: #fef2f2;
+            color: #991b1b;
+            font-size: 0.8125rem;
+        }
+
+        .validation-message.visible {
+            display: block;
         }
 
         .range-slider {
@@ -851,11 +870,11 @@
     </header>
 
     <!-- Help Modal -->
-    <div class="modal-overlay" id="helpModal" onclick="closeHelpIfClickOutside(event)">
-        <div class="modal-content">
+    <div class="modal-overlay" id="helpModal" role="dialog" aria-modal="true" aria-labelledby="helpTitle" aria-hidden="true" onclick="closeHelpIfClickOutside(event)">
+        <div class="modal-content" tabindex="-1">
             <div class="modal-header">
-                <h2>📖 How to Use Sim Loyalty</h2>
-                <button class="modal-close" onclick="toggleHelp()" aria-label="Close">&times;</button>
+                <h2 id="helpTitle">📖 How to Use Sim Loyalty</h2>
+                <button class="modal-close" onclick="closeHelp()" aria-label="Close help">&times;</button>
             </div>
             <div class="modal-body">
                 <h3>🎯 What is Sim Loyalty?</h3>
@@ -923,7 +942,7 @@
                     <li>Your actual data appears as <strong>light blue dots</strong> on the retention chart</li>
                     <li>The blue line shows the fitted model - compare visually!</li>
                 </ul>
-                <p><strong>🔬 Advanced Multi-Method Optimization:</strong> The curve fitting uses 4 different optimization algorithms simultaneously (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing) and automatically selects the best result. This ensures robust fitting across diverse retention patterns, from simple exponential decay to complex multi-segment behaviors.</p>
+                <p><strong>🔬 Advanced Multi-Method Optimization:</strong> The curve fitting runs and compares 4 different optimization algorithms (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing), then selects the best result. This ensures robust fitting across diverse retention patterns, from simple exponential decay to complex multi-segment behaviors.</p>
 
                 <h3>💾 Save & Share Your Work</h3>
                 <ul>
@@ -991,7 +1010,7 @@
                 </ul>
                 <p><strong>Check the Avg Error %</strong> when fitting. If &gt;10%, visually inspect the light blue dots - look for systematic patterns that the model misses.</p>
 
-                <h3>� Note on Acquisition Growth</h3>
+                <h3>📌 Note on Acquisition Growth</h3>
                 <p>This model assumes <strong>fixed monthly acquisition</strong> to isolate retention dynamics and calculate steady-state (asymptote). This assumption is realistic for:</p>
                 <ul>
                     <li>Mature businesses in stable markets</li>
@@ -1054,7 +1073,7 @@
                 <div class="input-wrapper">
                     <label for="cohortSize" data-tooltip="Number of new customers acquired each month">Monthly Customer Acquisition</label>
                     <div class="input-field-container">
-                        <input type="number" id="cohortSize" value="1000" min="1" step="1">
+                        <input type="number" id="cohortSize" value="1000" min="1" max="1000000" step="1">
                         <span class="input-unit">users</span>
                     </div>
                 </div>
@@ -1062,7 +1081,7 @@
                 <div class="input-wrapper">
                     <label for="timePeriods" data-tooltip="How many months to simulate into the future">Simulation Duration</label>
                     <div class="input-field-container">
-                        <input type="number" id="timePeriods" value="36" min="1" step="1">
+                        <input type="number" id="timePeriods" value="36" min="1" max="600" step="1">
                         <span class="input-unit">months</span>
                     </div>
                 </div>
@@ -1136,6 +1155,7 @@
                         <div class="segment-sum-text" id="segmentSumText">100%</div>
                     </div>
                 </div>
+                <div class="validation-message" id="validationMessage" role="alert" aria-live="polite"></div>
 
                 <!-- Curve Fitting Section -->
                 <div class="fit-section">
@@ -1216,7 +1236,7 @@
 
             <!-- Footer with version and repository link -->
             <div class="panel-footer">
-                <div style="margin-bottom: 0.5rem;">Version 1.0.0</div>
+                <div style="margin-bottom: 0.5rem;">Version 1.0.1</div>
                 <a href="https://github.com/Roenbaeck/sim-loyalty" target="_blank" rel="noopener noreferrer">
                     View on GitHub →
                 </a>
@@ -1271,6 +1291,68 @@
     <script>
         // --- Global State ---
         let actualRetentionData = null; // Store actual data points from curve fitting
+        let pendingStateWarning = '';
+
+        const PARAMETER_RULES = {
+            cohortSize: { min: 1, max: 1000000, integer: true, label: 'Monthly Customer Acquisition' },
+            timePeriods: { min: 1, max: 600, integer: true, label: 'Simulation Duration' },
+            shortTermPercent: { min: 0, max: 100, label: 'Short-term Segment Size' },
+            shortTermChurnRate: { min: 0, max: 100, label: 'Short-term Churn Rate' },
+            mediumTermPercent: { min: 0, max: 100, label: 'Medium-term Segment Size' },
+            mediumTermChurnRate: { min: 0, max: 100, label: 'Medium-term Churn Rate' },
+            longTermPercent: { min: 0, max: 100, label: 'Long-term Segment Size' },
+            longTermChurnRate: { min: 0, max: 100, label: 'Long-term Churn Rate' }
+        };
+
+        function validateParameterValues(values) {
+            for (const [name, rule] of Object.entries(PARAMETER_RULES)) {
+                const value = Number(values[name]);
+                if (!Number.isFinite(value) || value < rule.min || value > rule.max || (rule.integer && !Number.isInteger(value))) {
+                    return { valid: false, message: `${rule.label} must be ${rule.integer ? 'a whole number ' : ''}between ${rule.min.toLocaleString()} and ${rule.max.toLocaleString()}.` };
+                }
+            }
+
+            const segmentTotal = Number(values.shortTermPercent) + Number(values.mediumTermPercent) + Number(values.longTermPercent);
+            if (Math.abs(segmentTotal - 100) >= 0.01) {
+                return { valid: false, message: `Segment sizes must total 100% (currently ${segmentTotal.toFixed(1)}%).` };
+            }
+
+            return { valid: true };
+        }
+
+        function setValidationMessage(message = '') {
+            const validationMessage = document.getElementById('validationMessage');
+            validationMessage.textContent = message;
+            validationMessage.classList.toggle('visible', Boolean(message));
+        }
+
+        function getValidatedParameters(showError = true) {
+            const rawValues = {};
+            Object.keys(PARAMETER_RULES).forEach(name => {
+                rawValues[name] = document.getElementById(name).value;
+            });
+
+            const validation = validateParameterValues(rawValues);
+            if (!validation.valid) {
+                if (showError) setValidationMessage(validation.message);
+                return null;
+            }
+
+            if (showError) {
+                setValidationMessage(pendingStateWarning);
+                pendingStateWarning = '';
+            }
+            return {
+                cohortSize: Number(rawValues.cohortSize),
+                timePeriods: Number(rawValues.timePeriods),
+                shortTermPercent: Number(rawValues.shortTermPercent) / 100,
+                shortTermChurn: Number(rawValues.shortTermChurnRate) / 100,
+                mediumTermPercent: Number(rawValues.mediumTermPercent) / 100,
+                mediumTermChurn: Number(rawValues.mediumTermChurnRate) / 100,
+                longTermPercent: Number(rawValues.longTermPercent) / 100,
+                longTermChurn: Number(rawValues.longTermChurnRate) / 100
+            };
+        }
 
         // --- Chart Global Configuration for a more professional look ---
         Chart.defaults.font.family = "'Inter', -apple-system, BlinkMacSystemFont, sans-serif";
@@ -1401,6 +1483,7 @@
             
             // Initial render (after URL state is loaded and sliders are synced)
             updateCharts();
+            updateSavedSetsList();
             if (loadedFromURL) {
                 // If we loaded from URL, update the URL to ensure it's clean
                 updateURLState();
@@ -1445,13 +1528,15 @@
         function debouncedUpdateCharts() {
             clearTimeout(updateTimeout);
             updateTimeout = setTimeout(() => {
-                updateCharts();
-                updateURLState(); // Update URL after chart update
+                if (updateCharts()) {
+                    updateURLState(); // Update URL after a valid chart update
+                }
             }, 300);
         }
 
         // Update URL with current state (for autosave/sharing)
         function updateURLState() {
+            if (!getValidatedParameters(false)) return;
             const params = getAllParameters();
             delete params.actualData; // Don't include in URL (too long)
             const urlParams = new URLSearchParams(params);
@@ -1592,13 +1677,16 @@
                 setTimeout(() => {
                     try {
                         const result = optimizeParameters(data);
+                        const fittedShortTermPercent = Number((result.shortTermPercent * 100).toFixed(1));
+                        const fittedMediumTermPercent = Number((result.mediumTermPercent * 100).toFixed(1));
+                        const fittedLongTermPercent = Number((100 - fittedShortTermPercent - fittedMediumTermPercent).toFixed(1));
                         
                         // Update input fields with fitted parameters
-                        document.getElementById('shortTermPercent').value = (result.shortTermPercent * 100).toFixed(1);
+                        document.getElementById('shortTermPercent').value = fittedShortTermPercent.toFixed(1);
                         document.getElementById('shortTermChurnRate').value = (result.shortTermChurn * 100).toFixed(1);
-                        document.getElementById('mediumTermPercent').value = (result.mediumTermPercent * 100).toFixed(1);
+                        document.getElementById('mediumTermPercent').value = fittedMediumTermPercent.toFixed(1);
                         document.getElementById('mediumTermChurnRate').value = (result.mediumTermChurn * 100).toFixed(1);
-                        document.getElementById('longTermPercent').value = (result.longTermPercent * 100).toFixed(1);
+                        document.getElementById('longTermPercent').value = fittedLongTermPercent.toFixed(1);
                         document.getElementById('longTermChurnRate').value = (result.longTermChurn * 100).toFixed(1);
                         
                         // Sync sliders with the fitted values
@@ -1643,11 +1731,11 @@
                         resultDiv.className = 'fit-result visible ' + qualityClass;
                         resultDiv.innerHTML = `
                             <strong>${qualityIcon} Model fitted successfully!</strong><br><br>
-                            <strong>Short-Term:</strong> ${(result.shortTermPercent * 100).toFixed(1)}%<br>
+                            <strong>Short-Term:</strong> ${fittedShortTermPercent.toFixed(1)}%<br>
                             <span style="margin-left: 1rem; opacity: 0.7;">(${(result.shortTermChurn * 100).toFixed(1)}% churn)</span><br>
-                            <strong>Medium-Term:</strong> ${(result.mediumTermPercent * 100).toFixed(1)}%<br>
+                            <strong>Medium-Term:</strong> ${fittedMediumTermPercent.toFixed(1)}%<br>
                             <span style="margin-left: 1rem; opacity: 0.7;">(${(result.mediumTermChurn * 100).toFixed(1)}% churn)</span><br>
-                            <strong>Long-Term:</strong> ${(result.longTermPercent * 100).toFixed(1)}%<br>
+                            <strong>Long-Term:</strong> ${fittedLongTermPercent.toFixed(1)}%<br>
                             <span style="margin-left: 1rem; opacity: 0.7;">(${(result.longTermChurn * 100).toFixed(1)}% churn)</span><br>
                             <br><strong>Avg Error:</strong> ${mape.toFixed(1)}%<br>
                             <span style="margin-left: 1rem; opacity: 0.7;">(${qualityText})</span><br>
@@ -2192,7 +2280,7 @@
                 },
                 scales: {
                     x: {
-                        title: { display: true, text: 'Months Since Acqusition', font: { weight: 500 } },
+                        title: { display: true, text: 'Months Since Acquisition', font: { weight: 500 } },
                         grid: { display: false },
                         ticks: { color: '#64748b' },
                         border: { color: '#cbd5e1' }
@@ -2261,26 +2349,15 @@
         });
 
         function updateCharts() {
-            // Get input values
-            const shortTermPercent = parseFloat(document.getElementById('shortTermPercent').value) / 100;
-            const shortTermChurn = parseFloat(document.getElementById('shortTermChurnRate').value) / 100;
-            const mediumTermPercent = parseFloat(document.getElementById('mediumTermPercent').value) / 100;
-            const mediumTermChurn = parseFloat(document.getElementById('mediumTermChurnRate').value) / 100;
-            const longTermPercent = parseFloat(document.getElementById('longTermPercent').value) / 100;
-            const longTermChurn = parseFloat(document.getElementById('longTermChurnRate').value) / 100;
-            const cohortSize = parseFloat(document.getElementById('cohortSize').value);
-            const timePeriods = parseInt(document.getElementById('timePeriods').value);
+            const parameters = getValidatedParameters();
+            if (!parameters) return;
 
-            // Simple validation
-            if ([shortTermPercent, shortTermChurn, mediumTermPercent, mediumTermChurn, longTermPercent, longTermChurn, cohortSize, timePeriods].some(isNaN)) {
-                return; // Silently skip update if invalid
-            }
-
-            // Validate that segment percentages sum to 100% (allow 99-101% range)
-            const segmentSum = shortTermPercent + mediumTermPercent + longTermPercent;
-            if (segmentSum < 0.99 || segmentSum > 1.01) {
-                return; // Silently skip update if segments don't sum to 100%
-            }
+            const {
+                shortTermPercent, shortTermChurn,
+                mediumTermPercent, mediumTermChurn,
+                longTermPercent, longTermChurn,
+                cohortSize, timePeriods
+            } = parameters;
 
             const T = cohortSize * shortTermPercent;
             const M = cohortSize * mediumTermPercent;
@@ -2310,6 +2387,10 @@
             let medianLifetimeStr = 'Infinite';
             let medianLifetime = Infinity;
             const halfCohort = cohortSize / 2;
+            const permanentRetention =
+                (shortTermChurn === 0 ? T : 0) +
+                (mediumTermChurn === 0 ? M : 0) +
+                (longTermChurn === 0 ? L : 0);
 
             if (retentionData[timePeriods] < halfCohort) {
                  // Find where it crosses 50%
@@ -2322,14 +2403,21 @@
                         break;
                     }
                  }
-            } else if (mediumTermChurn > 0 || longTermChurn > 0) {
+            } else if (permanentRetention < halfCohort) {
                  medianLifetimeStr = '> ' + timePeriods + ' mo';
             }
 
             let meanLifetime = Infinity;
-            if (shortTermChurn > 0 && mediumTermChurn > 0 && longTermChurn > 0) {
+            const hasPermanentCustomers =
+                (shortTermPercent > 0 && shortTermChurn === 0) ||
+                (mediumTermPercent > 0 && mediumTermChurn === 0) ||
+                (longTermPercent > 0 && longTermChurn === 0);
+            if (!hasPermanentCustomers) {
                 // Weighted average of segment lifetimes
-                meanLifetime = (shortTermPercent / shortTermChurn) + (mediumTermPercent / mediumTermChurn) + (longTermPercent / longTermChurn);
+                meanLifetime =
+                    (shortTermPercent > 0 ? shortTermPercent / shortTermChurn : 0) +
+                    (mediumTermPercent > 0 ? mediumTermPercent / mediumTermChurn : 0) +
+                    (longTermPercent > 0 ? longTermPercent / longTermChurn : 0);
                 document.getElementById('meanDisplay').innerText = meanLifetime.toFixed(1) + ' mo';
             } else {
                 document.getElementById('meanDisplay').innerText = 'Infinite';
@@ -2377,55 +2465,30 @@
             }
 
             // --- GROWTH CALCULATION (3-segment model) ---
-             const growthData = timePoints.map(t => {
-                // Sum of all cohorts up to time t (each with 3 segments)
-                let total = 0;
-                for (let k = 0; k <= t; k++) {
-                    const age = t - k;
-                    total += (T * Math.pow(1 - shortTermChurn, age)) + 
-                             (M * Math.pow(1 - mediumTermChurn, age)) + 
-                             (L * Math.pow(1 - longTermChurn, age));
-                }
-                return total;
-            });
-
-            // Calculate segment-specific growth data for stacking
-            const shortTermGrowthData = timePoints.map(t => {
-                let total = 0;
-                for (let k = 0; k <= t; k++) {
-                    const age = t - k;
-                    total += T * Math.pow(1 - shortTermChurn, age);
-                }
-                return total;
-            });
-
-            const mediumTermGrowthData = timePoints.map(t => {
-                let total = 0;
-                for (let k = 0; k <= t; k++) {
-                    const age = t - k;
-                    total += M * Math.pow(1 - mediumTermChurn, age);
-                }
-                return total;
-            });
-
-            const longTermGrowthData = timePoints.map(t => {
-                let total = 0;
-                for (let k = 0; k <= t; k++) {
-                    const age = t - k;
-                    total += L * Math.pow(1 - longTermChurn, age);
-                }
-                return total;
+            // Calculate all active cohorts recursively in O(n) time.
+            const shortTermGrowthData = [];
+            const mediumTermGrowthData = [];
+            const longTermGrowthData = [];
+            const growthData = [];
+            timePoints.forEach(t => {
+                shortTermGrowthData[t] = t === 0 ? T : shortTermGrowthData[t - 1] * (1 - shortTermChurn) + T;
+                mediumTermGrowthData[t] = t === 0 ? M : mediumTermGrowthData[t - 1] * (1 - mediumTermChurn) + M;
+                longTermGrowthData[t] = t === 0 ? L : longTermGrowthData[t - 1] * (1 - longTermChurn) + L;
+                growthData[t] = shortTermGrowthData[t] + mediumTermGrowthData[t] + longTermGrowthData[t];
             });
 
             // --- KPI CALCS: ASYMPTOTE ---
             let asymptoteStr = 'No Ceiling (Linear Growth)';
-            let isLinear = (shortTermChurn === 0 || mediumTermChurn === 0 || longTermChurn === 0);
+            let isLinear = hasPermanentCustomers;
             let asymptoteVal = null;
             let linearAsymptoteData = null;
 
             if (!isLinear) {
                 // All segments have churn - finite asymptote
-                asymptoteVal = (T / shortTermChurn) + (M / mediumTermChurn) + (L / longTermChurn);
+                asymptoteVal =
+                    (shortTermPercent > 0 ? T / shortTermChurn : 0) +
+                    (mediumTermPercent > 0 ? M / mediumTermChurn : 0) +
+                    (longTermPercent > 0 ? L / longTermChurn : 0);
                 asymptoteStr = Math.round(asymptoteVal).toLocaleString();
                 document.getElementById('asymptoteFormula').innerText = 'Your growth will level off here without improving retention or acquisition';
             } else {
@@ -2460,9 +2523,9 @@
                 });
                 
                 const growingSegments = [];
-                if (shortTermChurn === 0) growingSegments.push(`${T.toFixed(0)} (short-term)`);
-                if (mediumTermChurn === 0) growingSegments.push(`${M.toFixed(0)} (medium-term)`);
-                if (longTermChurn === 0) growingSegments.push(`${L.toFixed(0)} (long-term)`);
+                if (shortTermPercent > 0 && shortTermChurn === 0) growingSegments.push(`${T.toFixed(0)} (short-term)`);
+                if (mediumTermPercent > 0 && mediumTermChurn === 0) growingSegments.push(`${M.toFixed(0)} (medium-term)`);
+                if (longTermPercent > 0 && longTermChurn === 0) growingSegments.push(`${L.toFixed(0)} (long-term)`);
                 
                 // Calculate steady-state contribution from segments with churn
                 let steadyState = 0;
@@ -2699,17 +2762,52 @@
             }
 
             growthChart.update();
+            return true;
         }
 
         // Help Modal Functions
+        let helpReturnFocus = null;
+
+        function openHelp() {
+            const modal = document.getElementById('helpModal');
+            if (modal.classList.contains('active')) return;
+
+            helpReturnFocus = document.activeElement;
+            modal.classList.add('active');
+            modal.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('modal-open');
+            document.querySelector('.app-header').inert = true;
+            document.querySelector('.app-container').inert = true;
+            modal.querySelector('.modal-close').focus();
+        }
+
+        function closeHelp() {
+            const modal = document.getElementById('helpModal');
+            if (!modal.classList.contains('active')) return;
+
+            modal.classList.remove('active');
+            modal.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('modal-open');
+            document.querySelector('.app-header').inert = false;
+            document.querySelector('.app-container').inert = false;
+            if (helpReturnFocus && document.contains(helpReturnFocus)) {
+                helpReturnFocus.focus();
+            }
+            helpReturnFocus = null;
+        }
+
         function toggleHelp() {
             const modal = document.getElementById('helpModal');
-            modal.classList.toggle('active');
+            if (modal.classList.contains('active')) {
+                closeHelp();
+            } else {
+                openHelp();
+            }
         }
 
         function closeHelpIfClickOutside(event) {
             if (event.target.id === 'helpModal') {
-                toggleHelp();
+                closeHelp();
             }
         }
 
@@ -2751,7 +2849,24 @@
             if (event.key === 'Escape') {
                 const modal = document.getElementById('helpModal');
                 if (modal.classList.contains('active')) {
-                    toggleHelp();
+                    closeHelp();
+                    return;
+                }
+            }
+            if (event.key === 'Tab') {
+                const modal = document.getElementById('helpModal');
+                if (modal.classList.contains('active')) {
+                    const focusableElements = [...modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')]
+                        .filter(element => !element.disabled && element.offsetParent !== null);
+                    const firstElement = focusableElements[0];
+                    const lastElement = focusableElements[focusableElements.length - 1];
+                    if (event.shiftKey && document.activeElement === firstElement) {
+                        event.preventDefault();
+                        lastElement.focus();
+                    } else if (!event.shiftKey && document.activeElement === lastElement) {
+                        event.preventDefault();
+                        firstElement.focus();
+                    }
                 }
             }
             // Press Enter anywhere in the controls panel to update charts
@@ -2843,14 +2958,18 @@
         }
 
         function setAllParameters(params) {
-            if (params.cohortSize) document.getElementById('cohortSize').value = params.cohortSize;
-            if (params.timePeriods) document.getElementById('timePeriods').value = params.timePeriods;
-            if (params.shortTermPercent) document.getElementById('shortTermPercent').value = params.shortTermPercent;
-            if (params.shortTermChurnRate) document.getElementById('shortTermChurnRate').value = params.shortTermChurnRate;
-            if (params.mediumTermPercent) document.getElementById('mediumTermPercent').value = params.mediumTermPercent;
-            if (params.mediumTermChurnRate) document.getElementById('mediumTermChurnRate').value = params.mediumTermChurnRate;
-            if (params.longTermPercent) document.getElementById('longTermPercent').value = params.longTermPercent;
-            if (params.longTermChurnRate) document.getElementById('longTermChurnRate').value = params.longTermChurnRate;
+            const currentValues = getAllParameters();
+            const candidateValues = { ...currentValues, ...params };
+            const validation = validateParameterValues(candidateValues);
+            if (!validation.valid) {
+                pendingStateWarning = `Saved or shared parameters were ignored. ${validation.message}`;
+                setValidationMessage(pendingStateWarning);
+                return false;
+            }
+
+            Object.keys(PARAMETER_RULES).forEach(name => {
+                document.getElementById(name).value = candidateValues[name];
+            });
             
             // Sync sliders with loaded values
             const sliderFields = ['shortTermPercent', 'shortTermChurnRate', 'mediumTermPercent', 
@@ -2872,9 +2991,11 @@
             if (params.actualData) {
                 actualRetentionData = params.actualData;
             }
+            return true;
         }
 
         function copyShareableLink() {
+            if (!getValidatedParameters()) return;
             const params = getAllParameters();
             delete params.actualData; // Don't include in URL (too long)
             const urlParams = new URLSearchParams(params);
@@ -2918,6 +3039,7 @@
         }
 
         function saveNamedSet() {
+            if (!getValidatedParameters()) return;
             const name = document.getElementById('saveSetName').value.trim();
             if (!name) {
                 alert('⚠️ Please enter a name for this parameter set.');
@@ -2998,15 +3120,14 @@
         }
 
         function exportToCSV() {
-            // Get current parameters
-            const cohortSize = parseFloat(document.getElementById('cohortSize').value);
-            const timePeriods = parseInt(document.getElementById('timePeriods').value);
-            const shortTermPercent = parseFloat(document.getElementById('shortTermPercent').value) / 100;
-            const shortTermChurn = parseFloat(document.getElementById('shortTermChurnRate').value) / 100;
-            const mediumTermPercent = parseFloat(document.getElementById('mediumTermPercent').value) / 100;
-            const mediumTermChurn = parseFloat(document.getElementById('mediumTermChurnRate').value) / 100;
-            const longTermPercent = parseFloat(document.getElementById('longTermPercent').value) / 100;
-            const longTermChurn = parseFloat(document.getElementById('longTermChurnRate').value) / 100;
+            const parameters = getValidatedParameters();
+            if (!parameters) return;
+            const {
+                cohortSize, timePeriods,
+                shortTermPercent, shortTermChurn,
+                mediumTermPercent, mediumTermChurn,
+                longTermPercent, longTermChurn
+            } = parameters;
 
             const T = cohortSize * shortTermPercent;
             const M = cohortSize * mediumTermPercent;
@@ -3020,20 +3141,19 @@
                 csv += '\n';
             }
             
+            let shortTermBase = 0;
+            let mediumTermBase = 0;
+            let longTermBase = 0;
             for (let t = 0; t <= timePeriods; t++) {
                 const shortTermRem = T * Math.pow(1 - shortTermChurn, t);
                 const transRem = M * Math.pow(1 - mediumTermChurn, t);
                 const longTermRem = L * Math.pow(1 - longTermChurn, t);
                 const totalRetention = shortTermRem + transRem + longTermRem;
                 
-                // Calculate total customer base (all cohorts)
-                let totalBase = 0;
-                for (let k = 0; k <= t; k++) {
-                    const age = t - k;
-                    totalBase += (T * Math.pow(1 - shortTermChurn, age)) + 
-                                 (M * Math.pow(1 - mediumTermChurn, age)) + 
-                                 (L * Math.pow(1 - longTermChurn, age));
-                }
+                shortTermBase = shortTermBase * (1 - shortTermChurn) + T;
+                mediumTermBase = mediumTermBase * (1 - mediumTermChurn) + M;
+                longTermBase = longTermBase * (1 - longTermChurn) + L;
+                const totalBase = shortTermBase + mediumTermBase + longTermBase;
                 
                 csv += `${t},${Math.round(shortTermRem)},${Math.round(transRem)},${Math.round(longTermRem)},${Math.round(totalRetention)},${Math.round(totalBase)}`;
                 
@@ -3055,28 +3175,6 @@
             URL.revokeObjectURL(url);
         }
 
-        // Load parameters from URL on page load
-        function loadFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('cohortSize')) {
-                const params = {
-                    cohortSize: urlParams.get('cohortSize'),
-                    timePeriods: urlParams.get('timePeriods'),
-                    shortTermPercent: urlParams.get('shortTermPercent'),
-                    shortTermChurnRate: urlParams.get('shortTermChurnRate'),
-                    mediumTermPercent: urlParams.get('mediumTermPercent'),
-                    mediumTermChurnRate: urlParams.get('mediumTermChurnRate'),
-                    longTermPercent: urlParams.get('longTermPercent'),
-                    longTermChurnRate: urlParams.get('longTermChurnRate')
-                };
-                setAllParameters(params);
-            }
-        }
-
-        // Init
-        loadFromURL();
-        updateSavedSetsList();
-        updateCharts();
     </script>
 </body>
 </html>
