@@ -33,6 +33,7 @@ Divide your customer base into segments based on longevity:
 
 ### Curve Fitting with Visual Validation
 - Paste your actual retention data (percentages by month)
+- Fits retention from a single cohort; acquisition is a separate simulation input and does not affect the fit
 - **Advanced multi-method optimization**: Runs and compares 4 different algorithms (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing) to find the best fit
 - Automatically selects the optimal result from all methods
 - **See your actual data as blue dots** overlaid on the model prediction
@@ -81,7 +82,7 @@ Simply open `index.html` in your web browser. No installation or build process r
 
 ### Manual Setup
 
-1. **Set Monthly Acquisition**: How many new customers you acquire each month (1 to 1,000,000)
+1. **Set Steady Monthly Acquisition**: How many new customers you acquire each month (1 to 1,000,000), held constant to isolate retention
 2. **Define Retention Segments**: 
    - Set the percentage split (must total exactly 100%)
    - Watch the segment sum indicator (green = valid, orange/red = invalid)
@@ -122,15 +123,25 @@ Simply open `index.html` in your web browser. No installation or build process r
 - Monthly time periods (suitable for most businesses)
 - Exponential decay within each segment
 - Constant monthly churn rates per segment
-- Fixed monthly customer acquisition
+- Steady gross monthly customer acquisition
 
 ### Calculations
 - Retention uses compound decay: `remaining(t) = initial × (1 - churn_rate)^t`
 - Growth sums all active cohorts at each time point
 - Asymptote (if exists): `sum(segment_size / segment_churn_rate)` for each segment
 
-### Note on Acquisition Growth
-This model assumes **fixed monthly acquisition** to isolate retention dynamics and calculate steady-state (asymptote). This assumption is realistic for:
+### Why Acquisition Stays Constant
+This model assumes **steady gross monthly acquisition** to isolate retention dynamics and calculate a meaningful steady-state customer base. Gross acquisition is the number of customers entering the business; it is not net customer growth.
+
+A stable market does not contain the same people forever. People can enter and leave at balanced rates, keeping the total addressable market stable while its membership changes. A mature business can therefore maintain steady acquisition through a combination of new market entrants and replacements for customers who leave.
+
+At equilibrium:
+
+`gross customer acquisition = customer outflow`
+
+The active customer base then has zero net growth even though customers continue to enter and leave. Constant acquisition describes a stable **flow**, not a frozen market or an unchanging group of customers.
+
+This assumption is realistic for:
 - Mature businesses in stable markets
 - Companies with consistent marketing spend
 - Market-share limited acquisition (e.g., B2B, niches)
@@ -139,7 +150,41 @@ Fixed acquisition lets you answer key strategic questions:
 - "At 1,000 customers/month, what's our ceiling?"
 - "How much does improving retention lift our steady-state?"
 
-**For high-growth scenarios** (e.g., 1,000 → 1,500 → 2,000/month), run multiple scenarios at different acquisition levels and interpolate externally. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.
+The simulator does **not** model addressable market size or a market-share cap. Its growth asymptote is the customer base supported by the selected acquisition and retention assumptions. If the real attainable market is smaller, successful acquisition would eventually have to decline toward the replacement rate as that cap is approached.
+
+**For high-growth scenarios** (e.g., 1,000 → 1,500 → 2,000/month), run separate scenarios at several fixed acquisition levels. Adding speculative compounding acquisition can hide the effect of retention and removes the fixed growth ceiling.
+
+## Scientific Basis
+
+Sim Loyalty combines established ideas from queueing theory, survival analysis, and customer-base analysis. The individual calculations are not new; the tool makes their interaction visible and easy to explore.
+
+### Growth Ceiling and Little's Law
+
+Little's Law states that the average number of entities in a stable system equals their arrival rate multiplied by their average time in the system:
+
+`average customer base = acquisition rate × average customer lifetime`
+
+For segment weight `wᵢ` and positive monthly churn rate `cᵢ`, the model's mean customer lifetime is `Σ(wᵢ / cᵢ)`. Its growth ceiling is therefore:
+
+`growth ceiling = monthly acquisition × Σ(wᵢ / cᵢ)`
+
+This is the same calculation performed by the simulator. Little's Law requires stable flows and finite means, but it does not require the identities in the system to remain fixed. Customers can continually enter and leave while the average active customer base remains stable. A populated zero-churn segment has infinite expected lifetime, so the model correctly has no finite ceiling in that case.
+
+### Retention as Survival
+
+A cohort-retention curve is a survival function: it gives the proportion of a cohort remaining active through each period. Median lifetime, mean lifetime, and churn hazards are standard survival-analysis concepts.
+
+The model represents customer heterogeneity as a weighted mixture of three geometric survival curves. This is a practical finite-mixture approximation of the broader idea that customers can have persistently different churn propensities.
+
+Using exactly three segments is a modeling convention, not a scientific law. A good fit supports the estimated retention curve, but does not prove that three literal customer types exist. More complete retention models may also include duration dependence, promotions, cohort effects, seasonality, or other calendar-time effects.
+
+### References
+
+- Little, J. D. C. (1961). [A Proof for the Queuing Formula: L = λW](https://doi.org/10.1287/opre.9.3.383). *Operations Research, 9*(3), 383-387.
+- Kaplan, E. L., & Meier, P. (1958). [Nonparametric Estimation from Incomplete Observations](https://doi.org/10.1080/01621459.1958.10501452). *Journal of the American Statistical Association, 53*(282), 457-481.
+- Fader, P. S., & Hardie, B. G. S. (2007). [How to Project Customer Retention](https://doi.org/10.1002/dir.20074). *Journal of Interactive Marketing, 21*(1), 76-90.
+- Schweidel, D. A., Fader, P. S., & Bradlow, E. T. (2008). [Understanding Service Retention within and across Cohorts Using Limited Information](https://doi.org/10.1509/jmkg.72.1.082). *Journal of Marketing, 72*(1), 82-94.
+- McLachlan, G., & Peel, D. (2000). [Finite Mixture Models](https://doi.org/10.1002/0471721182). Wiley.
 
 ## Model Limitations & Validation
 

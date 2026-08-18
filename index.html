@@ -1028,7 +1028,7 @@
                 <p><strong>Quick Start:</strong> Select a preset from <strong>Presets & Saved Sets</strong> dropdown (SaaS, E-commerce, Mobile App, or Enterprise B2B) to see example parameters.</p>
                 <p><strong>Manual Setup:</strong></p>
                 <ul>
-                    <li><strong>Step 1:</strong> Set your <strong>Monthly Customer Acquisition</strong></li>
+                    <li><strong>Step 1:</strong> Set your <strong>Steady Monthly Acquisition</strong></li>
                     <li><strong>Step 2:</strong> Define your <strong>Retention Segments</strong> (must sum to 100%)</li>
                     <li><strong>Step 3:</strong> Charts update automatically - no button click needed!</li>
                 </ul>
@@ -1055,6 +1055,7 @@
                     <li>Your actual data appears as <strong>blue dots</strong> on the retention chart</li>
                     <li>The blue line shows the fitted model - compare visually!</li>
                 </ul>
+                <p><strong>What is being fitted:</strong> The fitter estimates retention from a single cohort. Acquisition is a separate input used only to simulate total customer-base growth, so changing acquisition does not add a degree of freedom to the retention fit.</p>
                 <p><strong>🔬 Advanced Multi-Method Optimization:</strong> The curve fitting runs and compares 4 different optimization algorithms (Grid Search, Differential Evolution, Random Restart, and Simulated Annealing), then selects the best result. This ensures robust fitting across diverse retention patterns, from simple exponential decay to complex multi-segment behaviors.</p>
 
                 <h3>💾 Save & Share Your Work</h3>
@@ -1072,6 +1073,7 @@
 
                 <h3>🎯 Understanding Your Growth Ceiling (Asymptote)</h3>
                 <p><strong>Your growth ceiling</strong> is the customer level you naturally approach when new customers per month and churn stay steady. It's the point where <strong>new in = customers out</strong>, so the total stops rising.</p>
+                <p>This is a <strong>flow equilibrium</strong>, not a motionless customer base. Customers can keep leaving and being replaced even though the total number of active customers no longer changes.</p>
 
                 <h4>The "Leaky Bucket" Analogy</h4>
                 <p>Think of your business as a bucket:</p>
@@ -1123,8 +1125,11 @@
                 </ul>
                 <p><strong>Check the Avg Error %</strong> when fitting. If &gt;10%, visually inspect the blue dots - look for systematic patterns that the model misses.</p>
 
-                <h3>📌 Note on Acquisition Growth</h3>
-                <p>This model assumes <strong>fixed monthly acquisition</strong> to isolate retention dynamics and calculate steady-state (asymptote). This assumption is realistic for:</p>
+                <h3>📌 Why Acquisition Stays Constant</h3>
+                <p>This model uses <strong>steady gross monthly acquisition</strong> to isolate retention dynamics and calculate a meaningful growth ceiling. Gross acquisition counts customers entering the business; it is not the same as net customer growth.</p>
+                <p>A stable market does not contain the same people forever. When people enter and leave the market at balanced rates, its total size can remain stable while its membership changes. A mature business can therefore sustain a steady acquisition flow from new market entrants and replacements for departing customers.</p>
+                <p>At the growth ceiling, successful acquisition equals customer outflow, so net growth is zero. The business keeps acquiring customers simply to maintain its active customer base.</p>
+                <p>This assumption is realistic for:</p>
                 <ul>
                     <li>Mature businesses in stable markets</li>
                     <li>Companies with consistent marketing spend</li>
@@ -1135,7 +1140,18 @@
                     <li>"At 1,000 customers/month, what's our ceiling?"</li>
                     <li>"How much does improving retention lift our steady-state?"</li>
                 </ul>
-                <p><strong>For high-growth scenarios</strong> (e.g., 1,000 → 1,500 → 2,000/month), run multiple scenarios at different acquisition levels and interpolate externally. Mixing acquisition growth with retention modeling makes it harder to isolate what drives results.</p>
+                <p><strong>Model boundary:</strong> The simulator does not model addressable market size or a market-share cap. Its ceiling is the customer base supported by the selected acquisition and retention assumptions. If a real market cap is lower, successful acquisition would eventually have to fall to the replacement rate as that cap is approached.</p>
+                <p><strong>For high-growth scenarios</strong> (e.g., 1,000 → 1,500 → 2,000/month), run separate scenarios at several fixed acquisition levels. Adding speculative compounding acquisition can hide the retention lesson and removes the fixed growth ceiling.</p>
+
+                <h3>📚 Scientific Basis</h3>
+                <p>The simulator combines established ideas from queueing theory, survival analysis, and customer-base analysis:</p>
+                <ul>
+                    <li><a href="https://doi.org/10.1287/opre.9.3.383" target="_blank" rel="noopener noreferrer"><strong>Little (1961)</strong></a>: At equilibrium, the average customer base equals the acquisition rate multiplied by average customer lifetime. This is the mathematical basis of the growth ceiling.</li>
+                    <li><a href="https://doi.org/10.1080/01621459.1958.10501452" target="_blank" rel="noopener noreferrer"><strong>Kaplan & Meier (1958)</strong></a>: Cohort retention can be treated as a survival function, supporting measures such as median and mean lifetime.</li>
+                    <li><a href="https://doi.org/10.1002/dir.20074" target="_blank" rel="noopener noreferrer"><strong>Fader & Hardie (2007)</strong></a>: Customer-retention projection can account for persistent differences in churn propensity across customers.</li>
+                    <li><a href="https://doi.org/10.1509/jmkg.72.1.082" target="_blank" rel="noopener noreferrer"><strong>Schweidel, Fader & Bradlow (2008)</strong></a>: Retention models can incorporate subscriber heterogeneity, duration, cohort, and calendar-time effects.</li>
+                </ul>
+                <p><strong>Interpretation:</strong> Using exactly three segments is a practical finite-mixture approximation, not a claim that three distinct customer types objectively exist. A good fit supports the retention curve, but does not prove that the fitted segments are literal groups.</p>
 
                 <h3>💡 Tips</h3>
                 <ul>
@@ -1184,11 +1200,12 @@
                 </div>
                 
                 <div class="input-wrapper">
-                    <label for="cohortSize" data-tooltip="Number of new customers acquired each month">Monthly Customer Acquisition</label>
+                    <label for="cohortSize" data-tooltip="Gross new customers acquired each month, held steady to isolate retention">Steady Monthly Acquisition</label>
                     <div class="input-field-container">
-                        <input type="number" id="cohortSize" value="1000" min="1" max="1000000" step="1">
+                        <input type="number" id="cohortSize" value="1000" min="1" max="1000000" step="1" aria-describedby="acquisitionHelp">
                         <span class="input-unit">users</span>
                     </div>
+                    <div class="fit-help" id="acquisitionHelp">Held constant to isolate retention. In a stable market, this can represent new entrants and replacements balancing customer outflow.</div>
                 </div>
 
                 <div class="input-wrapper">
@@ -1430,7 +1447,7 @@
         };
 
         const PARAMETER_RULES = {
-            cohortSize: { min: 1, max: 1000000, integer: true, label: 'Monthly Customer Acquisition' },
+            cohortSize: { min: 1, max: 1000000, integer: true, label: 'Steady Monthly Acquisition' },
             timePeriods: { min: 1, max: 600, integer: true, label: 'Simulation Duration' },
             shortTermPercent: { min: 0, max: 100, label: 'Short-term Segment Size' },
             shortTermChurnRate: { min: 0, max: 100, label: 'Short-term Churn Rate' },
